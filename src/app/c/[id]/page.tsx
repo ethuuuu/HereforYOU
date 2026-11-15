@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { AppointmentCard } from "@/components/appointments/AppointmentCard";
 import { DoseList, type TodayDose } from "@/components/today/DoseList";
 import { Card } from "@/components/ui/Card";
 import { ReadAloud } from "@/components/ui/ReadAloud";
 import { requireCircleMember } from "@/lib/auth/page";
 import { can } from "@/lib/auth/permissions";
+import { nextAppointment } from "@/lib/data/appointments";
 import { listDoseLogs } from "@/lib/data/doseLogs";
 import { listActiveMedications } from "@/lib/data/medications";
 import { adherenceStreak, doseState, summarizeAdherence } from "@/lib/domain/adherence";
@@ -12,7 +15,7 @@ import { addDays, formatLocalDate, formatLocalTime, localDateOf } from "@/lib/do
 
 export const metadata: Metadata = { title: "Today" };
 
-/** Today: this day's doses, the week's adherence, missed doses and refill warnings. 2 queries. */
+/** Today: this day's doses, the week's adherence, missed doses, refill warnings and the next visit. 3 queries. */
 export default async function CircleHomePage({ params }: PageProps<"/c/[id]">) {
   const { id } = await params;
   const { circle, member } = await requireCircleMember(id);
@@ -21,7 +24,11 @@ export default async function CircleHomePage({ params }: PageProps<"/c/[id]">) {
   const today = localDateOf(now, tz);
   const weekStart = addDays(today, -6);
 
-  const [meds, logs] = await Promise.all([listActiveMedications(id), listDoseLogs(id, weekStart, today)]);
+  const [meds, logs, nextVisit] = await Promise.all([
+    listActiveMedications(id),
+    listDoseLogs(id, weekStart, today),
+    nextAppointment(id, now),
+  ]);
   const logById = new Map(logs.map((l) => [l.doseId, l]));
   const weekDoses = dosesForRange(meds, weekStart, today, tz);
 
@@ -79,6 +86,19 @@ export default async function CircleHomePage({ params }: PageProps<"/c/[id]">) {
           </Card>
         </section>
       )}
+
+      <section aria-labelledby="next-visit-heading" className="flex flex-col gap-4">
+        <h2 id="next-visit-heading" className="text-2xl font-bold">
+          Next appointment
+        </h2>
+        {nextVisit ? (
+          <AppointmentCard appointment={nextVisit} timeZone={tz} headingLevel="h3" />
+        ) : (
+          <p className="text-lg text-muted">
+            No upcoming appointments. <Link href={`/c/${id}/appointments`}>See appointments</Link>
+          </p>
+        )}
+      </section>
 
       <section aria-labelledby="week-heading">
         <Card>

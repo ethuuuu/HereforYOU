@@ -50,10 +50,10 @@ Tick boxes as you go. Feature 3 complete + deployed = a valid submission; everyt
 - Done when: add a medicine for now+2 min, it appears on Today, "I took it" turns it ✓ and adherence updates.
 
 ## F4 · Appointments (≈45 min)
-- [ ] List (upcoming / past) + add/edit/delete form (`AppointmentInputSchema`); server computes `startsAt` with `zonedToUtc`.
-- [ ] Each appointment: **Add to Google Calendar** (`googleCalendarUrl`) and **Directions** (`googleMapsUrl`).
-- [ ] Next appointment card on Today.
-- [ ] Tests: create route computes `startsAt` in the circle time zone; calendar link present.
+- [x] List (upcoming / past) + add/edit/delete form (`AppointmentInputSchema`); server computes `startsAt` with `zonedToUtc`.
+- [x] Each appointment: **Add to Google Calendar** (`googleCalendarUrl`) and **Directions** (`googleMapsUrl`).
+- [x] Next appointment card on Today.
+- [x] Tests: create route computes `startsAt` in the circle time zone; calendar link present.
 
 ## F5 · Reminder emails (≈1 h)
 - [ ] `src/lib/data/*` queries for the runner (AGENTS.md §9 read budget).

@@ -1,5 +1,5 @@
 /**
- * Display preferences (large text, high contrast, reduce motion, big buttons, read-aloud).
+ * Display preferences (large text, high contrast, reduce motion, big buttons, solid backgrounds, read-aloud).
  * Stored in a small readable cookie so the server can put the right classes on <html>
  * before first paint. Signed-in users' saved prefs are copied into it at sign-in.
  * Shared by server and browser code — keep it free of server-only imports.
@@ -11,6 +11,7 @@ export type DisplayPrefs = {
   highContrast: boolean;
   reduceMotion: boolean;
   bigButtons: boolean;
+  reduceTransparency: boolean;
   readAloud: boolean;
 };
 type PrefKey = keyof DisplayPrefs;
@@ -20,6 +21,7 @@ export const DEFAULT_PREFS: DisplayPrefs = {
   highContrast: false,
   reduceMotion: false,
   bigButtons: false,
+  reduceTransparency: false,
   readAloud: true,
 };
 
@@ -29,6 +31,7 @@ const CLASS: Partial<Record<PrefKey, string>> = {
   highContrast: "high-contrast",
   reduceMotion: "reduce-motion",
   bigButtons: "big-buttons",
+  reduceTransparency: "reduce-transparency",
 };
 
 /** Cookie value is the comma-separated list of prefs that are ON, e.g. "largeText,readAloud". */

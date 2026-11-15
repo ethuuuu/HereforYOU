@@ -24,13 +24,10 @@ async function HeaderUser() {
  */
 export function SiteHeader({ prefs }: { prefs: DisplayPrefs }) {
   return (
-    <header className="no-print border-b-2 border-line bg-surface">
+    <header className="glass no-print sticky top-0 z-40 border-b-2 border-line">
       <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3">
-        <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-primary no-underline">
-          <span aria-hidden="true" className="grid size-9 place-items-center rounded-lg bg-primary text-lg text-on-primary">
-            ♥
-          </span>
-          Here For YOU
+        <Link href="/" aria-label="hereforYOU, home" className="text-2xl font-bold tracking-tight text-primary no-underline">
+          herefor<span className="text-accent-ink">YOU</span>
         </Link>
         <div className="flex items-center gap-3 sm:order-last">
           <Suspense fallback={null}>

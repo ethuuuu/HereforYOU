@@ -122,9 +122,10 @@ describe("AccessibilityMenu", () => {
     await user.click(larger);
     await user.click(screen.getByRole("switch", { name: /Reduce motion/ }));
     await user.click(screen.getByRole("switch", { name: /Bigger buttons/ }));
+    await user.click(screen.getByRole("switch", { name: /Solid backgrounds/ }));
     expect(larger).toHaveAttribute("aria-checked", "true");
-    expect(document.documentElement).toHaveClass("large-text", "reduce-motion", "big-buttons");
-    expect(document.cookie).toContain("hfy_prefs=largeText%2CreduceMotion%2CbigButtons%2CreadAloud");
+    expect(document.documentElement).toHaveClass("large-text", "reduce-motion", "big-buttons", "reduce-transparency");
+    expect(document.cookie).toContain("hfy_prefs=largeText%2CreduceMotion%2CbigButtons%2CreduceTransparency%2CreadAloud");
 
     await user.click(larger);
     expect(document.documentElement).not.toHaveClass("large-text");

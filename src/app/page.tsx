@@ -31,7 +31,7 @@ export default async function Home() {
     <div className="flex flex-col gap-12">
       <section aria-labelledby="intro" className="rounded-lg bg-warm px-6 py-10 sm:px-10 sm:py-14">
         <h1 id="intro" className="text-4xl font-bold leading-tight text-primary sm:text-5xl">
-          Here For YOU
+          herefor<span className="text-accent-ink">YOU</span>
         </h1>
         <p className="mt-4 max-w-2xl text-xl sm:text-2xl">
           Your medicines, doctor visits and family — together in one place, with you in charge.

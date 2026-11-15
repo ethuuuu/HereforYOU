@@ -63,7 +63,7 @@ export function Dropdown({
           id={panelId}
           role="group"
           aria-label={panelLabel}
-          className="animate-pop absolute right-0 z-40 mt-2 w-[min(24rem,calc(100vw-2rem))] rounded-lg border-2 border-line bg-surface p-3 shadow-xl"
+          className="animate-pop absolute right-0 z-40 mt-2 w-[min(24rem,calc(100vw-2rem))] glass rounded-lg border-2 border-line p-3 shadow-xl"
         >
           {children}
         </div>

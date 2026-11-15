@@ -49,7 +49,7 @@ export default async function MedicationsPage({ params }: PageProps<"/c/[id]/med
         </p>
       )}
 
-      <ul className="flex flex-col gap-4" role="list">
+      <ul className="stagger flex flex-col gap-4" role="list">
         {meds.map((m) => {
           const daysLeft = daysOfSupplyLeft(m);
           const lowSupply = m.active && daysLeft !== null && daysLeft <= m.refillThreshold;

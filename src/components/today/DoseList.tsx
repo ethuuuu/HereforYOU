@@ -49,7 +49,7 @@ export function DoseList({ circleId, doses, canLog }: { circleId: string; doses:
   return (
     <div className="flex flex-col gap-4">
       <Toast message={message?.text} tone={message?.tone} />
-      <ul className="flex flex-col gap-4" role="list">
+      <ul className="stagger flex flex-col gap-4" role="list">
         {doses.map((d) => {
           const state = states[d.doseId] ?? d.state;
           const badge = BADGE[state];
@@ -58,7 +58,7 @@ export function DoseList({ circleId, doses, canLog }: { circleId: string; doses:
             <li
               key={d.doseId}
               aria-labelledby={headingId}
-              className={`rounded-lg border-2 border-l-8 border-line bg-surface p-5 shadow-sm sm:p-6 ${badge.stripe}`}
+              className={`glass lift rounded-lg border-2 border-l-8 border-line p-5 shadow-sm sm:p-6 ${badge.stripe}`}
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>

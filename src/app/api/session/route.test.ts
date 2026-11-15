@@ -56,6 +56,7 @@ describe("POST /api/session", () => {
       highContrast: true,
       reduceMotion: false,
       bigButtons: false,
+      reduceTransparency: false,
       readAloud: false,
     });
   });

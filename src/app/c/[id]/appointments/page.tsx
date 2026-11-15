@@ -45,7 +45,7 @@ export default async function AppointmentsPage({ params }: PageProps<"/c/[id]/ap
             {canEdit ? "" : " The elder, a caretaker or a doctor can add them."}
           </p>
         )}
-        <ul className="flex flex-col gap-4" role="list">
+        <ul className="stagger flex flex-col gap-4" role="list">
           {upcoming.map((a) => card(a, canAsk))}
         </ul>
       </section>
@@ -55,7 +55,7 @@ export default async function AppointmentsPage({ params }: PageProps<"/c/[id]/ap
           <h2 id="past-heading" className="text-2xl font-bold">
             Past appointments
           </h2>
-          <ul className="flex flex-col gap-4" role="list">
+          <ul className="stagger flex flex-col gap-4" role="list">
             {past.map((a) => card(a))}
           </ul>
         </section>

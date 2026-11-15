@@ -9,6 +9,7 @@ const OPTIONS = [
   { key: "highContrast", label: "High contrast", hint: "Stronger colours and borders" },
   { key: "bigButtons", label: "Bigger buttons", hint: "Easier to tap" },
   { key: "reduceMotion", label: "Reduce motion", hint: "No sliding or fading" },
+  { key: "reduceTransparency", label: "Solid backgrounds", hint: "Turns off the see-through glass" },
 ] as const;
 
 /** Header "Accessibility" menu: switches saved in a cookie so every page loads that way. */

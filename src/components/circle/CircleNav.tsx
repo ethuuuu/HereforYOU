@@ -56,7 +56,7 @@ export function CircleNav({ links }: { links: NavLink[] }) {
         </ul>
       </nav>
 
-      <nav aria-label="Circle sections" className="bottom-nav no-print fixed inset-x-0 bottom-0 z-30 border-t-2 border-line bg-surface sm:hidden">
+      <nav aria-label="Circle sections" className="bottom-nav no-print glass fixed inset-x-0 bottom-0 z-30 border-t-2 border-line sm:hidden">
         <ul className="grid auto-cols-fr grid-flow-col" role="list">
           {links.map((link, i) =>
             link.phone ? (

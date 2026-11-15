@@ -9,7 +9,7 @@ import "./globals.css";
 const atkinson = Atkinson_Hyperlegible({ weight: ["400", "700"], subsets: ["latin"], variable: "--font-atkinson" });
 
 export const metadata: Metadata = {
-  title: { default: "Here For YOU", template: "%s · Here For YOU" },
+  title: { default: "hereforYOU", template: "%s · hereforYOU" },
   description:
     "A shared health companion for older people: medicine reminders, doctor visits and family support — with you in charge.",
 };

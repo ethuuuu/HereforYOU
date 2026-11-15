@@ -13,12 +13,12 @@ describe("display prefs", () => {
   });
 
   it("ignores unknown or junk values", () => {
-    expect(parsePrefs("<script>,highContrast")).toEqual({ largeText: false, highContrast: true, reduceMotion: false, bigButtons: false, readAloud: false });
+    expect(parsePrefs("<script>,highContrast")).toEqual({ largeText: false, highContrast: true, reduceMotion: false, bigButtons: false, reduceTransparency: false, readAloud: false });
   });
 
   it("maps prefs to <html> classes", () => {
-    expect(prefsClassName({ largeText: true, highContrast: true, reduceMotion: true, bigButtons: true, readAloud: true })).toBe(
-      "large-text high-contrast reduce-motion big-buttons",
+    expect(prefsClassName({ largeText: true, highContrast: true, reduceMotion: true, bigButtons: true, reduceTransparency: true, readAloud: true })).toBe(
+      "large-text high-contrast reduce-motion big-buttons reduce-transparency",
     );
     expect(prefsClassName(DEFAULT_PREFS)).toBe("");
   });

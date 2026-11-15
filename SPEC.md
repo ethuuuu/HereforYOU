@@ -20,11 +20,11 @@ Tick boxes as you go. Feature 3 complete + deployed = a valid submission; everyt
 - Done when: sign in, refresh, still signed in; sign out works.
 
 **F1b — Passkeys (timebox 75 min; if blocked, move to F2 and return after F5)**
-- [ ] Routes: `/api/passkeys/register/{options,verify}`, `/api/passkeys/login/{options,verify}` per AGENTS.md §8.
-- [ ] `passkeys/{credentialId}` + `webauthnChallenges` repositories; challenges expire in 5 min.
-- [ ] `/signin`: big "Sign in with fingerprint or face" button above Google. "Create account with a passkey" on `/welcome`.
-- [ ] Settings: list passkeys, add another, remove one.
-- [ ] Tests for verify routes with `@simplewebauthn/server` mocked (success, bad challenge, expired, unknown credential).
+- [x] Routes: `/api/passkeys/register/{options,verify}`, `/api/passkeys/login/{options,verify}` per AGENTS.md §8.
+- [x] `passkeys/{credentialId}` + `webauthnChallenges` repositories; challenges expire in 5 min.
+- [x] `/signin`: big "Sign in with fingerprint or face" button above Google. "Create account with a passkey" on `/welcome`.
+- [x] Settings: list passkeys, add another, remove one.
+- [x] Tests for verify routes with `@simplewebauthn/server` mocked (success, bad challenge, expired, unknown credential).
 - Done when: create account with a passkey on localhost, sign out, sign back in with the passkey.
 
 ## F2 · Role-based onboarding & care circles (≈1 h 30)

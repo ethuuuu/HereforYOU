@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { buttonClass } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { GoogleSignIn } from "@/components/GoogleSignIn";
+import { PasskeyCreateAccount } from "@/components/passkeys/PasskeyCreateAccount";
 import { getSessionUser } from "@/lib/auth/session";
 
 export const metadata: Metadata = { title: "Get started" };
@@ -44,7 +45,7 @@ const ROLES = [
 
 export default async function WelcomePage() {
   const user = await getSessionUser();
-  if (!user) redirect("/signin");
+  if (!user) return <CreateAccount />;
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-8">
@@ -74,6 +75,22 @@ export default async function WelcomePage() {
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+/** Signed out: make an account first — with a passkey, or with Google. */
+function CreateAccount() {
+  return (
+    <div className="mx-auto flex max-w-xl flex-col gap-6">
+      <h1 className="text-4xl font-bold text-primary">Create your account</h1>
+      <Card className="flex flex-col gap-6">
+        <PasskeyCreateAccount />
+        <GoogleSignIn />
+      </Card>
+      <p>
+        Already have an account? <Link href="/signin">Sign in</Link>
+      </p>
     </div>
   );
 }

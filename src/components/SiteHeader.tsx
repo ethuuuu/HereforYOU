@@ -21,6 +21,9 @@ async function HeaderUser() {
       <p>
         Signed in as <strong>{user.name ?? user.email ?? "you"}</strong>
       </p>
+      <Link href="/settings" className={buttonClass("secondary", "w-auto!")}>
+        Settings
+      </Link>
       <SignOutButton />
     </div>
   );

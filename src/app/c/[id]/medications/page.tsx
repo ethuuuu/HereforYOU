@@ -29,9 +29,16 @@ export default async function MedicationsPage({ params }: PageProps<"/c/[id]/med
           Medicines
         </h2>
         {canEdit && (
-          <Link href={`/c/${id}/medications/new`} className={buttonClass("primary")}>
-            Add a medicine
-          </Link>
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+            <Link href={`/c/${id}/medications/new`} className={buttonClass("primary")}>
+              Add a medicine
+            </Link>
+            {can(member.role, "ai.use") && (
+              <Link href={`/c/${id}/medications/import`} className={buttonClass("secondary")}>
+                Add from prescription
+              </Link>
+            )}
+          </div>
         )}
       </div>
 

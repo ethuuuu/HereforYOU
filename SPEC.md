@@ -65,11 +65,11 @@ Tick boxes as you go. Feature 3 complete + deployed = a valid submission; everyt
 - Done when: a medicine due 15 min ago with no log → "Send reminders now" → elder receives the missed email; pressing again sends nothing.
 
 ## F6 · Gemini features (≈45 min)
-- [ ] `src/lib/ai/prompts.ts`: `prescriptionPrompt` + `PrescriptionDraftSchema` (array of medication drafts + `uncertain` notes); `visitQuestionsPrompt` + schema.
-- [ ] "Add from prescription": paste text **or** upload a photo (≤ 4 MB jpeg/png/webp) → editable draft cards → confirm saves selected.
-- [ ] Appointment: "Suggest questions for this visit" → saved to `appointment.questions`, shown and included in reminder emails.
-- [ ] Notice under AI output; loading + error + retry states; read-aloud.
-- [ ] Tests: AI routes with `generateJSON` mocked (valid, invalid input 400, AI error 502); prompt builders include user data inside `<user_input>`.
+- [x] `src/lib/ai/prompts.ts`: `prescriptionPrompt` + `PrescriptionDraftSchema` (array of medication drafts + `uncertain` notes); `visitQuestionsPrompt` + schema.
+- [x] "Add from prescription": paste text **or** upload a photo (≤ 4 MB jpeg/png/webp) → editable draft cards → confirm saves selected.
+- [x] Appointment: "Suggest questions for this visit" → saved to `appointment.questions`, shown and included in reminder emails.
+- [x] Notice under AI output; loading + error + retry states; read-aloud.
+- [x] Tests: AI routes with `generateJSON` mocked (valid, invalid input 400, AI error 502); prompt builders include user data inside `<user_input>`.
 
 ## F7 · Role dashboards & polish (remaining time)
 - [ ] Caretaker home: all circles they belong to, today's due/missed doses across them.

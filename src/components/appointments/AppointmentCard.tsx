@@ -1,14 +1,15 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { buttonClass } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { googleCalendarUrl, googleMapsUrl } from "@/lib/calendar";
 import type { Appointment } from "@/lib/domain/schemas";
 import { formatLocalDate, formatLocalTime } from "@/lib/domain/time";
 
-type Props = { appointment: Appointment; timeZone: string; editHref?: string; headingLevel?: "h2" | "h3" };
+type Props = { appointment: Appointment; timeZone: string; editHref?: string; headingLevel?: "h2" | "h3"; children?: ReactNode };
 
 /** One visit: when, where, why — with Google Calendar and Google Maps links. No hooks: safe in Server Components. */
-export function AppointmentCard({ appointment: a, timeZone, editHref, headingLevel: H = "h3" }: Props) {
+export function AppointmentCard({ appointment: a, timeZone, editHref, headingLevel: H = "h3", children }: Props) {
   const start = new Date(a.startsAt);
   const who = a.specialty ? `${a.doctorName} (${a.specialty})` : a.doctorName;
   const calendarUrl = googleCalendarUrl({
@@ -53,6 +54,7 @@ export function AppointmentCard({ appointment: a, timeZone, editHref, headingLev
           </Link>
         )}
       </div>
+      {children}
     </Card>
   );
 }

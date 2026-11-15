@@ -96,3 +96,26 @@ export async function deleteAppointment(circleId: string, actor: Member, apptId:
     return true;
   });
 }
+
+/** Saves the questions the user confirmed for a visit (replacing any before). False if missing. */
+export async function setAppointmentQuestions(
+  circleId: string,
+  actor: Member,
+  apptId: string,
+  questions: string[],
+): Promise<boolean> {
+  const ref = appointmentsCol(circleId).doc(apptId);
+  return db().runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists) return false;
+    const { doctorName } = snap.data() as Appointment;
+    tx.update(ref, { questions });
+    logActivityIn(tx, circleId, {
+      actorUid: actor.id,
+      actorName: actor.name,
+      action: "appointment.questions",
+      summary: `${actor.name} saved ${questions.length} question${questions.length === 1 ? "" : "s"} for the visit with ${doctorName}`,
+    });
+    return true;
+  });
+}

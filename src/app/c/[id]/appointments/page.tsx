@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AppointmentCard } from "@/components/appointments/AppointmentCard";
+import { VisitQuestions } from "@/components/appointments/VisitQuestions";
 import { buttonClass } from "@/components/ui/Button";
 import { requireCircleMember } from "@/lib/auth/page";
 import { assertCan, can } from "@/lib/auth/permissions";
@@ -14,11 +15,14 @@ export default async function AppointmentsPage({ params }: PageProps<"/c/[id]/ap
   const { member, circle } = await requireCircleMember(id);
   assertCan(member.role, "appointments.view");
   const canEdit = can(member.role, "appointments.edit");
+  const canAsk = canEdit && can(member.role, "ai.use");
   const nowIso = new Date().toISOString();
   const [upcoming, past] = await Promise.all([listAppointmentsBetween(id, nowIso), listPastAppointments(id, nowIso)]);
-  const card = (a: (typeof upcoming)[number]) => (
+  const card = (a: (typeof upcoming)[number], ask = false) => (
     <li key={a.id}>
-      <AppointmentCard appointment={a} timeZone={circle.timezone} editHref={canEdit ? `/c/${id}/appointments/${a.id}` : undefined} />
+      <AppointmentCard appointment={a} timeZone={circle.timezone} editHref={canEdit ? `/c/${id}/appointments/${a.id}` : undefined}>
+        {ask && <VisitQuestions circleId={id} apptId={a.id} doctorName={a.doctorName} />}
+      </AppointmentCard>
     </li>
   );
 
@@ -37,7 +41,7 @@ export default async function AppointmentsPage({ params }: PageProps<"/c/[id]/ap
         </div>
         {upcoming.length === 0 && <p className="text-lg text-muted">No upcoming appointments.</p>}
         <ul className="flex flex-col gap-4" role="list">
-          {upcoming.map(card)}
+          {upcoming.map((a) => card(a, canAsk))}
         </ul>
       </section>
 
@@ -47,7 +51,7 @@ export default async function AppointmentsPage({ params }: PageProps<"/c/[id]/ap
             Past appointments
           </h2>
           <ul className="flex flex-col gap-4" role="list">
-            {past.map(card)}
+            {past.map((a) => card(a))}
           </ul>
         </section>
       )}

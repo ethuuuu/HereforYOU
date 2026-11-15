@@ -220,3 +220,45 @@ export type Appointment = AppointmentInput & {
   createdBy: string;
   questions?: string[]; // Gemini-suggested questions for the doctor
 };
+
+/* ---------- AI requests ---------- */
+
+export const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
+export const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
+// First bytes of each allowed format, base64-encoded (WebP is checked for "RIFF" then "WEBP").
+const MAGIC: Record<(typeof IMAGE_TYPES)[number], (head: string) => boolean> = {
+  "image/jpeg": (h) => h.startsWith("\xFF\xD8\xFF"),
+  "image/png": (h) => h.startsWith("\x89PNG"),
+  "image/webp": (h) => h.startsWith("RIFF") && h.slice(8, 12) === "WEBP",
+};
+const decodeHead = (b64: string) => {
+  try {
+    return atob(b64.slice(0, 16));
+  } catch {
+    return "";
+  }
+};
+
+export const ImageUploadSchema = z
+  .object({
+    mimeType: z.enum(IMAGE_TYPES, "Use a JPEG, PNG or WebP photo"),
+    base64: z
+      .string()
+      .max(Math.ceil(MAX_IMAGE_BYTES / 3) * 4, "The photo must be 4 MB or smaller")
+      .regex(/^[A-Za-z0-9+/]+={0,2}$/, "That photo could not be read"),
+  })
+  .refine((img) => MAGIC[img.mimeType](decodeHead(img.base64)), {
+    message: "That file is not a JPEG, PNG or WebP photo",
+    path: ["base64"],
+  });
+
+export const PrescriptionRequestSchema = z
+  .object({
+    text: z.string().trim().max(4000, "Keep the text under 4,000 characters").optional(),
+    image: ImageUploadSchema.optional(),
+  })
+  .refine((b) => b.text || b.image, { message: "Paste the prescription or add a photo", path: ["text"] });
+
+export const SaveQuestionsSchema = z.object({
+  questions: z.array(z.string().trim().min(1).max(140)).max(5),
+});

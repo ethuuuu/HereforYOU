@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { Card } from "@/components/ui/Card";
 import { requireCircleMember } from "@/lib/auth/page";
 import { useState, useEffect } from "react";
@@ -19,7 +18,6 @@ import { Toast } from "@/components/ui/Toast";
 import { buttonClass } from "@/components/ui/Button";
 import type { Medication } from "@/lib/domain/schemas";
 
-export const metadata: Metadata = { title: "Today" };
 
 // @ts-expect-error - Firestore data shape may not match Medication type exactly
 export default async function CircleHomePage({ params }: import("next").PageProps<"/c/[id]">) {

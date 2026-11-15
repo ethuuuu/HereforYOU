@@ -65,16 +65,20 @@ html.large-text {
   font-size: 137.5%;
 }
 
-body {
-  background: var(--bg);
-  color: var(--ink);
-  line-height: 1.6;
-}
+/* In the base layer so utilities win: an unlayered `a { color }` beat `text-on-primary`
+   and made button-styled links blue-on-blue (e.g. "Get started"). */
+@layer base {
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.6;
+  }
 
-a {
-  color: var(--primary);
-  text-decoration-thickness: 2px;
-  text-underline-offset: 0.2em;
+  a {
+    color: var(--primary);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
+  }
 }
 
 :focus-visible {

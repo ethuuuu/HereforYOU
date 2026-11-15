@@ -1,0 +1,9 @@
+#!/bin/sh
+# Strips AI attribution trailers from every commit message, whoever writes the commit.
+# Enabled by bootstrap.sh via: git config core.hooksPath .githooks
+MSG_FILE="$1"
+TMP="$(mktemp)"
+grep -viE '^(Co-Authored-By:.*(claude|anthropic|noreply@anthropic)|Claude-Session:|🤖 Generated with|Generated with \[?Claude)' "$MSG_FILE" > "$TMP" || true
+# Trim trailing blank lines
+awk 'NF{p=NR} {a[NR]=$0} END{for(i=1;i<=p;i++) print a[i]}' "$TMP" > "$MSG_FILE"
+rm -f "$TMP"

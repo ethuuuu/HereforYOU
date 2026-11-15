@@ -8,7 +8,7 @@ type Described = {
   error?: string;
 };
 
-const CONTROL = "min-h-12 rounded-xl border-2 bg-bg px-4 py-2 text-lg";
+const CONTROL = "min-h-(--tap) rounded-xl border-2 bg-bg px-4 py-2 text-lg";
 
 /** Label + hint + control + error, wired with aria-describedby / aria-invalid. */
 function Wrapper({

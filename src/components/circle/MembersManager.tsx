@@ -95,7 +95,7 @@ export function MembersManager({ circleId, members: initial, myRole, hasElder }:
                 <label className="flex flex-col gap-1">
                   <span className="text-sm font-bold">Change role</span>
                   <select
-                    className="min-h-11 rounded-xl border-2 border-field bg-bg px-3 py-2 text-base"
+                    className="min-h-(--tap) rounded-xl border-2 border-field bg-bg px-3 py-2 text-base"
                     value={m.role}
                     disabled={busy === m.id}
                     aria-label={`Role for ${m.name}`}

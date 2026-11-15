@@ -50,7 +50,7 @@ export function VisitQuestions({ circleId, apptId, doctorName }: { circleId: str
           <fieldset className="flex flex-col gap-2">
             <legend className="text-lg font-bold">Suggested questions — untick any you don&apos;t want</legend>
             {suggestions.map((s, i) => (
-              <label key={i} className="inline-flex min-h-12 items-start gap-3 text-lg">
+              <label key={i} className="inline-flex min-h-(--tap) items-start gap-3 text-lg">
                 <input
                   type="checkbox"
                   className="mt-1 size-6 shrink-0"

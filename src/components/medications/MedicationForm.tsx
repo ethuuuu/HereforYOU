@@ -109,7 +109,7 @@ export function MedicationForm({ circleId, medication, today }: { circleId: stri
         <legend className="text-lg font-bold">Days</legend>
         <div className="flex flex-wrap gap-2">
           {DAYS.map((d, i) => (
-            <label key={d} className="inline-flex min-h-12 items-center gap-2 rounded-xl border-2 border-field px-4 text-lg">
+            <label key={d} className="inline-flex min-h-(--tap) items-center gap-2 rounded-xl border-2 border-field px-4 text-lg">
               <input type="checkbox" name="daysOfWeek" value={i} defaultChecked={days.has(i)} className="size-6" />
               {d}
             </label>

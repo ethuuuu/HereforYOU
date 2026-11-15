@@ -2,7 +2,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { DisplayToggles } from "@/components/DisplayToggles";
+import { DisplayMenu } from "@/components/DisplayMenu";
 import { DEFAULT_PREFS } from "@/lib/prefs";
 import { Button } from "./Button";
 import { Field } from "./Field";
@@ -107,20 +107,38 @@ describe("ReadAloud", () => {
   });
 });
 
-describe("DisplayToggles", () => {
-  it("turns on larger text: button pressed, <html> class set, choice saved in a cookie", async () => {
+describe("DisplayMenu", () => {
+  it("opens, switches settings on and off, applies <html> classes and saves a cookie", async () => {
     const user = userEvent.setup();
-    render(<DisplayToggles initial={DEFAULT_PREFS} />);
-    const button = screen.getByRole("button", { name: "Larger text" });
-    expect(button).toHaveAttribute("aria-pressed", "false");
+    render(<DisplayMenu initial={DEFAULT_PREFS} />);
+    const menu = screen.getByRole("button", { name: "Display" });
+    expect(menu).toHaveAttribute("aria-expanded", "false");
 
-    await user.click(button);
+    await user.click(menu);
+    expect(menu).toHaveAttribute("aria-expanded", "true");
+    const larger = screen.getByRole("switch", { name: /Larger text/ });
+    expect(larger).toHaveAttribute("aria-checked", "false");
 
-    expect(button).toHaveAttribute("aria-pressed", "true");
-    expect(document.documentElement).toHaveClass("large-text");
-    expect(document.cookie).toContain("hfy_prefs=largeText%2CreadAloud");
+    await user.click(larger);
+    await user.click(screen.getByRole("switch", { name: /Reduce motion/ }));
+    await user.click(screen.getByRole("switch", { name: /Bigger buttons/ }));
+    expect(larger).toHaveAttribute("aria-checked", "true");
+    expect(document.documentElement).toHaveClass("large-text", "reduce-motion", "big-buttons");
+    expect(document.cookie).toContain("hfy_prefs=largeText%2CreduceMotion%2CbigButtons%2CreadAloud");
 
-    await user.click(button);
+    await user.click(larger);
     expect(document.documentElement).not.toHaveClass("large-text");
   });
+
+  it("closes on Escape and returns focus to the Display button", async () => {
+    const user = userEvent.setup();
+    render(<DisplayMenu initial={DEFAULT_PREFS} />);
+    const menu = screen.getByRole("button", { name: "Display" });
+    await user.click(menu);
+    await user.keyboard("{Escape}");
+    expect(menu).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("switch")).toBeNull();
+    expect(menu).toHaveFocus();
+  });
 });
+

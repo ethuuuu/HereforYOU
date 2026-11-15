@@ -5,6 +5,7 @@
  */
 import "server-only";
 import { cookies } from "next/headers";
+import { cache } from "react";
 import { adminAuth } from "@/lib/firebase/admin";
 
 export const SESSION_COOKIE = "hfy_session";
@@ -29,20 +30,28 @@ export async function createSession(idToken: string): Promise<SessionUser> {
 
 export type SessionUser = { uid: string; email?: string; name?: string };
 
-/** Returns the signed-in user, or null. Checks revocation. */
-export async function getSessionUser(): Promise<SessionUser | null> {
+async function readSession(checkRevoked: boolean): Promise<SessionUser | null> {
   const cookie = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!cookie) return null;
   try {
-    const decoded = await adminAuth().verifySessionCookie(cookie, true);
+    const decoded = await adminAuth().verifySessionCookie(cookie, checkRevoked);
     return { uid: decoded.uid, email: decoded.email, name: decoded.name as string | undefined };
   } catch {
     return null;
   }
 }
 
+/**
+ * Signed-in user for page rendering, or null. Signature + expiry are checked locally
+ * (no network) and the result is shared by every component in one request.
+ * Revocation needs a Firebase round trip, so it's checked on every API call (requireUser),
+ * where data actually changes — this keeps page navigation fast.
+ */
+export const getSessionUser = cache(() => readSession(false));
+
+/** For route handlers: signed in AND not revoked. */
 export async function requireUser(): Promise<SessionUser> {
-  const user = await getSessionUser();
+  const user = await readSession(true);
   if (!user) throw new UnauthorizedError();
   return user;
 }

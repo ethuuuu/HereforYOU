@@ -14,7 +14,13 @@ export const metadata: Metadata = {
     "A shared health companion for older people: medicine reminders, doctor visits and family support — with you in charge.",
 };
 
-export const viewport: Viewport = { themeColor: "#0b5394" };
+// Browser toolbar matches the page in light and dark mode.
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#faf7f2" },
+    { media: "(prefers-color-scheme: dark)", color: "#111816" },
+  ],
+};
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   // Display prefs from a cookie so <html> has the right classes before first paint (no flash).

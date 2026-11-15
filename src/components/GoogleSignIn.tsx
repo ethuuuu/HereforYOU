@@ -45,7 +45,7 @@ export function GoogleSignIn() {
   return (
     <div className="flex flex-col gap-4">
       <Button onClick={signIn} loading={busy} loadingText="Signing you in…" className="text-xl">
-        <span aria-hidden="true" className="rounded-full bg-white px-2 font-bold text-primary">
+        <span aria-hidden="true" className="rounded-full bg-on-primary px-2 font-bold text-primary">
           G
         </span>
         Continue with Google

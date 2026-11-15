@@ -1,39 +1,86 @@
 @import "tailwindcss";
 
 /*
- * Calm, warm, elder-first theme. Text sizes are in rem off the <html> size,
- * so "large-text" scales everything and browser zoom/font settings still work.
- * Contrast: ink 15.9:1, muted 7.6:1, primary #0b5394 7.8:1 on white (AAA).
+ * "Warm paper, deep teal": calm and legible for older eyes. Light and dark follow the
+ * system setting; high contrast has its own light and dark sets. Text sizes are rem off
+ * <html>, so "large-text" scales everything and browser zoom still works.
+ * Text colours target AAA (7:1) against their backgrounds.
  */
 :root {
-  --bg: #ffffff;
-  --ink: #1f2328;
-  --muted: #4a4f57;
-  --primary: #0b5394;
-  --primary-hover: #083f71;
+  color-scheme: light;
+  --bg: #faf7f2;
+  --surface: #ffffff;
+  --warm: #f3ede3;
+  --ink: #1b2420;
+  --muted: #3f4844;
+  --primary: #0c524e;
+  --primary-hover: #083b38;
   --on-primary: #ffffff;
-  --surface: #fffdf9;
-  --warm: #fdf5ea;
-  --line: #e8dccb;
-  --field: #6b6257;
-  --danger: #a1241b;
-  --success: #1d6332;
-  --focus: #b5470b;
+  --line: #ddd3c4;
+  --field: #6e665b;
+  --danger: #8f1f16;
+  --success: #145a2f;
+  --focus: #b45309; /* amber ring: visible on teal, paper and white */
+  --tap: 3rem; /* minimum touch target: 48px+, grows with larger text */
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #111816;
+    --surface: #18211e;
+    --warm: #1f2a26;
+    --ink: #eef2ef;
+    --muted: #b4c0ba;
+    --primary: #6fd0c6;
+    --primary-hover: #9be0d8;
+    --on-primary: #062421;
+    --line: #33413c;
+    --field: #8c9a93;
+    --danger: #ff9e92;
+    --success: #86d9a0;
+    --focus: #ffc46b;
+  }
 }
 
 /* High contrast: ≥ 7:1 everywhere, solid borders, no tints. */
 .high-contrast {
-  --ink: #000000;
-  --muted: #1a1a1a;
-  --primary: #002f63;
-  --primary-hover: #001a38;
+  --bg: #ffffff;
   --surface: #ffffff;
   --warm: #ffffff;
+  --ink: #000000;
+  --muted: #1a1a1a;
+  --primary: #003b38;
+  --primary-hover: #00211f;
+  --on-primary: #ffffff;
   --line: #000000;
   --field: #000000;
   --danger: #7a0f08;
   --success: #0b4020;
   --focus: #000000;
+}
+@media (prefers-color-scheme: dark) {
+  .high-contrast {
+    --bg: #000000;
+    --surface: #000000;
+    --warm: #000000;
+    --ink: #ffffff;
+    --muted: #f0f0f0;
+    --primary: #8ff5ea;
+    --primary-hover: #c4fff8;
+    --on-primary: #000000;
+    --line: #ffffff;
+    --field: #ffffff;
+    --danger: #ffb4ab;
+    --success: #9df0b5;
+    --focus: #ffe066;
+  }
+}
+
+/* Bigger buttons: every control sized with min-h-(--tap) grows to 64px+. */
+.big-buttons {
+  --tap: 4rem;
 }
 
 @theme inline {
@@ -108,6 +155,45 @@ main:focus {
   border-width: 2px;
 }
 
+/* Motion: short, eased, and only to show that something changed. */
+@layer base {
+  :where(button, a, input, select, textarea, summary) {
+    transition:
+      background-color 160ms var(--ease),
+      color 160ms var(--ease),
+      border-color 160ms var(--ease),
+      box-shadow 160ms var(--ease),
+      transform 120ms var(--ease);
+  }
+}
+@keyframes hfy-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes hfy-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+.animate-enter {
+  animation: hfy-enter 280ms var(--ease) both;
+}
+.animate-pop {
+  animation: hfy-enter 160ms var(--ease) both;
+}
+.skeleton {
+  background: var(--warm);
+  border-radius: 1.5rem;
+  animation: hfy-pulse 1.4s ease-in-out infinite;
+}
+
+/* Reduce motion: the system setting OR the "Reduce motion" choice in the Display menu. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -117,6 +203,14 @@ main:focus {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
 }
 
 @media print {

@@ -5,14 +5,14 @@ export type ButtonVariant = "primary" | "secondary" | "danger";
 const VARIANTS: Record<ButtonVariant, string> = {
   primary: "bg-primary text-on-primary hover:bg-primary-hover",
   secondary: "border-2 border-primary bg-bg text-primary hover:bg-warm",
-  danger: "bg-danger text-white hover:opacity-90",
+  danger: "bg-danger text-on-primary hover:opacity-90",
 };
 
 /** Shared look for buttons and button-styled links: ≥ 48px tall, full width on phones. */
 export function buttonClass(variant: ButtonVariant = "primary", className = ""): string {
   return [
-    "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl px-6 py-3",
-    "text-lg font-bold no-underline transition-colors sm:w-auto",
+    "inline-flex min-h-(--tap) w-full items-center justify-center gap-2 rounded-2xl px-6 py-3",
+    "text-lg font-bold no-underline active:scale-[0.98] sm:w-auto",
     "disabled:cursor-not-allowed disabled:opacity-60",
     VARIANTS[variant],
     className,

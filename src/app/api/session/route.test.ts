@@ -51,7 +51,13 @@ describe("POST /api/session", () => {
   it("saves the display prefs chosen on this device into a new profile", async () => {
     cookieJar.set("hfy_prefs", "largeText,highContrast");
     await signIn({ idToken: "tok" });
-    expect(ensureUser).toHaveBeenCalledWith(asha, { largeText: true, highContrast: true, readAloud: false });
+    expect(ensureUser).toHaveBeenCalledWith(asha, {
+      largeText: true,
+      highContrast: true,
+      reduceMotion: false,
+      bigButtons: false,
+      readAloud: false,
+    });
   });
 
   it("sends a returning member straight to their circle", async () => {

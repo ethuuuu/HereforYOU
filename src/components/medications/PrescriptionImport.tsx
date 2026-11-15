@@ -126,7 +126,7 @@ export function PrescriptionImport({ circleId, today }: { circleId: string; toda
               {drafts.map((d, i) => (
                 <li key={d.key}>
                   <Card className="flex flex-col gap-4">
-                    <label className="inline-flex min-h-12 items-center gap-3 text-xl font-bold">
+                    <label className="inline-flex min-h-(--tap) items-center gap-3 text-xl font-bold">
                       <input type="checkbox" className="size-6" checked={d.selected} onChange={(e) => edit(d.key, { selected: e.target.checked })} />
                       Save medicine {i + 1}
                     </label>

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { buttonClass } from "@/components/ui/Button";
-import { DisplayToggles } from "@/components/DisplayToggles";
+import { DisplayMenu } from "@/components/DisplayMenu";
 import { SignOutButton } from "@/components/SignOutButton";
 import { getSessionUser } from "@/lib/auth/session";
 import type { DisplayPrefs } from "@/lib/prefs";
@@ -37,7 +37,7 @@ export function SiteHeader({ prefs }: { prefs: DisplayPrefs }) {
           Here For YOU
         </Link>
         <div className="flex flex-wrap items-center gap-3">
-          <DisplayToggles initial={prefs} />
+          <DisplayMenu initial={prefs} />
           <Suspense fallback={null}>
             <HeaderUser />
           </Suspense>

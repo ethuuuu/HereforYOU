@@ -118,7 +118,7 @@ export function CreateCircleForm({ setupRole, nameLabel }: { setupRole: SetupRol
         error={errors.confirm}
       />
       {isElder && (
-        <label className="flex min-h-12 items-center gap-3 text-lg">
+        <label className="flex min-h-(--tap) items-center gap-3 text-lg">
           <input type="checkbox" name="largeText" defaultChecked className="size-6" />
           Use larger text (recommended)
         </label>

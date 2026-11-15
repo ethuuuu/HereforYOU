@@ -7,17 +7,19 @@ describe("display prefs", () => {
   });
 
   it("round-trips through the cookie value", () => {
-    const prefs = { largeText: true, highContrast: false, readAloud: true };
+    const prefs = { ...DEFAULT_PREFS, largeText: true, bigButtons: true };
     expect(parsePrefs(serializePrefs(prefs))).toEqual(prefs);
     expect(parsePrefs(encodeURIComponent(serializePrefs(prefs)))).toEqual(prefs);
   });
 
   it("ignores unknown or junk values", () => {
-    expect(parsePrefs("<script>,highContrast")).toEqual({ largeText: false, highContrast: true, readAloud: false });
+    expect(parsePrefs("<script>,highContrast")).toEqual({ largeText: false, highContrast: true, reduceMotion: false, bigButtons: false, readAloud: false });
   });
 
   it("maps prefs to <html> classes", () => {
-    expect(prefsClassName({ largeText: true, highContrast: true, readAloud: true })).toBe("large-text high-contrast");
+    expect(prefsClassName({ largeText: true, highContrast: true, reduceMotion: true, bigButtons: true, readAloud: true })).toBe(
+      "large-text high-contrast reduce-motion big-buttons",
+    );
     expect(prefsClassName(DEFAULT_PREFS)).toBe("");
   });
 

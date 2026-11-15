@@ -5,7 +5,14 @@
 "use client";
 
 import { getApp, getApps, initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import {
+  browserPopupRedirectResolver,
+  getAuth,
+  GoogleAuthProvider,
+  inMemoryPersistence,
+  initializeAuth,
+  type Auth,
+} from "firebase/auth";
 
 const config = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -14,9 +21,21 @@ const config = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-export function clientAuth() {
+let auth: Auth | null = null;
+
+/**
+ * In-memory persistence: the browser keeps no Firebase login of its own. The
+ * httpOnly session cookie is the only session, so signing out clears everything.
+ */
+export function clientAuth(): Auth {
+  if (auth) return auth;
   const app = getApps().length ? getApp() : initializeApp(config);
-  return getAuth(app);
+  try {
+    auth = initializeAuth(app, { persistence: inMemoryPersistence, popupRedirectResolver: browserPopupRedirectResolver });
+  } catch {
+    auth = getAuth(app); // already initialised (e.g. after hot reload)
+  }
+  return auth;
 }
 
 export const googleProvider = new GoogleAuthProvider();

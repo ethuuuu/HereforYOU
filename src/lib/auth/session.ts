@@ -10,7 +10,8 @@ import { adminAuth } from "@/lib/firebase/admin";
 export const SESSION_COOKIE = "hfy_session";
 const SESSION_DAYS = 5;
 
-export async function createSession(idToken: string): Promise<void> {
+/** Verifies a fresh ID token, sets the session cookie and returns who signed in. */
+export async function createSession(idToken: string): Promise<SessionUser> {
   const decoded = await adminAuth().verifyIdToken(idToken, true);
   // Only accept recent sign-ins (prevents replaying an old ID token).
   if (Date.now() / 1000 - decoded.auth_time > 5 * 60) throw new Error("Sign-in too old");
@@ -23,6 +24,7 @@ export async function createSession(idToken: string): Promise<void> {
     path: "/",
     maxAge: expiresIn / 1000,
   });
+  return { uid: decoded.uid, email: decoded.email, name: decoded.name as string | undefined };
 }
 
 export type SessionUser = { uid: string; email?: string; name?: string };

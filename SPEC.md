@@ -14,9 +14,9 @@ Tick boxes as you go. Feature 3 complete + deployed = a valid submission; everyt
 
 ## F1 · Accounts (≈1 h 30)
 **F1a — Google sign-in + sessions (do first)**
-- [ ] `/signin`: "Continue with Google" (Firebase popup) → `POST /api/session` → redirect.
-- [ ] `POST /api/session` (ID token → cookie), `DELETE /api/session` (sign out) + tests.
-- [ ] `users/{uid}` created on first sign-in (`src/lib/data/users.ts`).
+- [x] `/signin`: "Continue with Google" (Firebase popup) → `POST /api/session` → redirect.
+- [x] `POST /api/session` (ID token → cookie), `DELETE /api/session` (sign out) + tests.
+- [x] `users/{uid}` created on first sign-in (`src/lib/data/users.ts`).
 - Done when: sign in, refresh, still signed in; sign out works.
 
 **F1b — Passkeys (timebox 75 min; if blocked, move to F2 and return after F5)**

@@ -3,6 +3,7 @@
  * with one of these schemas; Firestore documents follow the matching types.
  */
 import { z } from "zod";
+import type { DisplayPrefs } from "@/lib/prefs";
 import { isLocalDate, isLocalTime } from "./time";
 
 /* ---------- Roles ---------- */
@@ -59,6 +60,18 @@ export const NotifyPrefsSchema = z.object({
   refills: z.boolean(),
 });
 export type NotifyPrefs = z.infer<typeof NotifyPrefsSchema>;
+
+/* ---------- Users ---------- */
+
+/** users/{uid}. setupRole is set on the "Who's setting this up?" screen, so it's missing at first. */
+export type UserProfile = {
+  displayName: string;
+  email?: string;
+  setupRole?: SetupRole;
+  circleIds: string[];
+  prefs: DisplayPrefs;
+  createdAt: string; // ISO
+};
 
 /* ---------- Profile (care circle) ---------- */
 

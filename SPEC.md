@@ -4,7 +4,7 @@ Build in this order. Each feature is a vertical slice (UI → route → data →
 Tick boxes as you go. Feature 3 complete + deployed = a valid submission; everything after improves the score.
 
 ## F0 · Foundation (≈30 min)
-- [x] App shell: `layout.tsx` with skip link, header (app name + signed-in user + sign out), `<main id="main">`, footer; `lang="en"`; base font 18px.
+- [x] App shell: `layout.tsx` with skip link, header (app name + signed-in user + sign out), `<main id="main">`, footer; `lang="en"`; base font 18px in elder mode, 16px standard.
 - [x] Design primitives in `src/components/ui/`: `Button` (≥48px, variants primary/secondary/danger, loading state), `Field` (label, hint, error via `aria-describedby`), `Card`, `Toast` (aria-live), `ReadAloud`.
 - [x] Accessibility prefs: `largeText` + `highContrast` classes on `<html>` from user prefs (cookie for signed-out users).
 - [x] `src/lib/http.ts`: `json()`, `withCircle()` error mapping (401/403/400/404/500) + tests.
@@ -72,6 +72,7 @@ Tick boxes as you go. Feature 3 complete + deployed = a valid submission; everyt
 - [x] Tests: AI routes with `generateJSON` mocked (valid, invalid input 400, AI error 502); prompt builders include user data inside `<user_input>`.
 
 ## F7 · Role dashboards & polish (remaining time)
+- [x] Two UI modes (AGENTS.md §12): elder mode (18px, 48px targets, calm motion) from `setupRole`, standard mode (16px, 44px targets, fluid motion) for everyone else; "Simple large layout" switch in the Accessibility menu.
 - [ ] Caretaker home: all circles they belong to, today's due/missed doses across them.
 - [ ] Doctor report `/c/[id]/report`: medicines, 30-day adherence, missed doses, printable (`@media print`).
 - [ ] Family home: "Is Mum OK today?" summary card (adherence today + next appointment).

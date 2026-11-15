@@ -22,7 +22,7 @@ async function HeaderUser() {
  * Phones: brand + Account on one row, a full-width Accessibility button below.
  * Wider screens: everything on one row.
  */
-export function SiteHeader({ prefs }: { prefs: DisplayPrefs }) {
+export function SiteHeader({ prefs, elderMode }: { prefs: DisplayPrefs; elderMode: boolean }) {
   return (
     <header className="glass no-print sticky top-0 z-40 border-b-2 border-line">
       <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3">
@@ -34,7 +34,7 @@ export function SiteHeader({ prefs }: { prefs: DisplayPrefs }) {
             <HeaderUser />
           </Suspense>
         </div>
-        <AccessibilityMenu initial={prefs} className="order-last w-full sm:order-none sm:ml-auto sm:w-auto" />
+        <AccessibilityMenu initial={prefs} initialElderMode={elderMode} className="order-last w-full sm:order-none sm:ml-auto sm:w-auto" />
       </div>
     </header>
   );

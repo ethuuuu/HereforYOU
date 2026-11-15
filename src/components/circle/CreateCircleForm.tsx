@@ -6,6 +6,7 @@ import { Field, SelectField } from "@/components/ui/Field";
 import { Toast } from "@/components/ui/Toast";
 import { sendJson } from "@/lib/api-client";
 import type { SetupRole } from "@/lib/domain/schemas";
+import { applyModeInBrowser } from "@/lib/mode";
 import { applyPrefsInBrowser, readPrefsInBrowser } from "@/lib/prefs";
 import { SetupDone, type Created } from "./SetupDone";
 
@@ -66,6 +67,7 @@ export function CreateCircleForm({ setupRole, nameLabel }: { setupRole: SetupRol
       return;
     }
     if (largeText) applyPrefsInBrowser({ ...readPrefsInBrowser(), largeText: true });
+    if (isElder) applyModeInBrowser(true); // the server set the cookie; show the elder layout now
     setDone({ ...res.data, elderName });
   }
 

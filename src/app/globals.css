@@ -24,8 +24,12 @@
   --danger: #861a1a;
   --success: #264f1a;
   --focus: #b45309;
-  --tap: 3rem; /* minimum touch target: 48px+, grows with larger text */
+  --tap: 2.75rem; /* minimum touch target: 44px (48px+ in elder mode), grows with larger text */
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* Motion scale: standard mode moves a little more; elder mode overrides these to stay calm. */
+  --enter-y: 0.75rem;
+  --enter-ms: 320ms;
+  --lift-y: -3px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -118,7 +122,7 @@
 
 /* Fluidity: lists flow in one after another; cards lift gently under the pointer. */
 .stagger > * {
-  animation: hfy-enter 320ms var(--ease) both;
+  animation: hfy-enter var(--enter-ms) var(--ease) both;
 }
 .stagger > :nth-child(2) { animation-delay: 50ms; }
 .stagger > :nth-child(3) { animation-delay: 100ms; }
@@ -126,17 +130,57 @@
 .stagger > :nth-child(n + 5) { animation-delay: 200ms; }
 .lift {
   transition:
-    transform 220ms var(--ease),
+    translate 220ms var(--ease),
     box-shadow 220ms var(--ease);
 }
 @media (hover: hover) {
   :root:not(.reduce-motion) .lift:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 28px -12px rgb(0 0 0 / 0.25);
+    translate: 0 var(--lift-y);
+    box-shadow: 0 14px 32px -14px rgb(0 0 0 / 0.28);
   }
 }
 
-/* Bigger buttons: every control sized with min-h-(--tap) grows to 64px+. */
+/* Dropdown panels: grow in from the button, fade out when closed (`hidden`). */
+.pop-panel {
+  transform-origin: top right;
+  transition:
+    opacity 180ms var(--ease),
+    scale 180ms var(--ease),
+    translate 180ms var(--ease),
+    display 180ms allow-discrete;
+}
+.pop-panel[hidden] {
+  opacity: 0;
+  scale: 0.96;
+  translate: 0 -0.25rem;
+}
+@starting-style {
+  .pop-panel:not([hidden]) {
+    opacity: 0;
+    scale: 0.96;
+    translate: 0 -0.25rem;
+  }
+}
+
+/*
+ * Two UI modes (src/lib/mode.ts). Standard (default): 16px base, Tailwind's normal small
+ * sizes, 44px targets, livelier motion. Elder mode: 18px base, "small" text never below
+ * the base, 48px+ targets, calmer and shorter motion (AGENTS.md §12).
+ * Unlayered, so these beat Tailwind's theme defaults on :root.
+ */
+.elder-mode {
+  --tap: 3rem;
+  --text-xs: 1rem;
+  --text-xs--line-height: 1.5;
+  --text-sm: 1rem;
+  --text-sm--line-height: 1.5;
+  --enter-y: 0.25rem;
+  --enter-ms: 220ms;
+  --lift-y: 0px;
+}
+@custom-variant elder (&:where(.elder-mode, .elder-mode *));
+
+/* Bigger buttons: every control sized with min-h-(--tap) grows to 64px+. After .elder-mode so it wins. */
 .big-buttons {
   --tap: 4rem;
 }
@@ -157,18 +201,20 @@
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
   --font-sans: var(--font-atkinson), system-ui, -apple-system, "Segoe UI", sans-serif;
-  /* Elders read this: "small" text never drops below the 18px base (AGENTS.md §12). */
-  --text-xs: 1rem;
-  --text-xs--line-height: 1.5;
-  --text-sm: 1rem;
-  --text-sm--line-height: 1.5;
 }
 
-/* 18px base; large-text mode 22px. Percentages respect the user's browser setting. */
+/* Standard 16px (larger text 20px); elder mode 18px (larger text 22px).
+   Percentages respect the user's browser setting. */
 html {
-  font-size: 112.5%;
+  font-size: 100%;
 }
 html.large-text {
+  font-size: 125%;
+}
+html.elder-mode {
+  font-size: 112.5%;
+}
+html.elder-mode.large-text {
   font-size: 137.5%;
 }
 
@@ -198,7 +244,11 @@ html.large-text {
 }
 
 :focus-visible {
-  outline: 4px solid var(--focus);
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.elder-mode :focus-visible {
+  outline-width: 4px;
   outline-offset: 3px;
 }
 main:focus {
@@ -232,17 +282,25 @@ main:focus {
       color 160ms var(--ease),
       border-color 160ms var(--ease),
       box-shadow 160ms var(--ease),
-      transform 120ms var(--ease);
+      transform 120ms var(--ease),
+      translate 160ms var(--ease),
+      scale 120ms var(--ease),
+      rotate 200ms var(--ease);
   }
 }
 @keyframes hfy-enter {
   from {
     opacity: 0;
-    transform: translateY(0.5rem);
+    transform: translateY(var(--enter-y));
   }
   to {
     opacity: 1;
     transform: none;
+  }
+}
+@keyframes hfy-fade {
+  from {
+    opacity: 0;
   }
 }
 @keyframes hfy-pulse {
@@ -250,16 +308,27 @@ main:focus {
     opacity: 0.55;
   }
 }
+@keyframes hfy-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
 .animate-enter {
-  animation: hfy-enter 280ms var(--ease) both;
+  animation: hfy-enter var(--enter-ms) var(--ease) both;
 }
-.animate-pop {
-  animation: hfy-enter 160ms var(--ease) both;
+/* Opacity only: a transform here would trap the fixed bottom nav inside the page while it plays. */
+.animate-fade {
+  animation: hfy-fade var(--enter-ms) var(--ease) both;
 }
+/* Loading placeholders: a soft sweep in standard mode, a slow gentle pulse in elder mode. */
 .skeleton {
-  background: var(--warm);
   border-radius: 1.5rem;
-  animation: hfy-pulse 1.4s ease-in-out infinite;
+  background: linear-gradient(90deg, var(--warm) 40%, var(--surface) 50%, var(--warm) 60%) 0 0 / 200% 100% var(--warm);
+  animation: hfy-shimmer 1.4s linear infinite;
+}
+.elder-mode .skeleton {
+  background: var(--warm);
+  animation: hfy-pulse 1.6s ease-in-out infinite;
 }
 
 /* Reduce motion: the system setting OR the "Reduce motion" choice in the Display menu. */

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Dropdown } from "@/components/ui/Dropdown";
+import { applyModeInBrowser } from "@/lib/mode";
 import { applyPrefsInBrowser, type DisplayPrefs } from "@/lib/prefs";
 
 const OPTIONS = [
@@ -12,9 +13,44 @@ const OPTIONS = [
   { key: "reduceTransparency", label: "Solid backgrounds", hint: "Turns off the see-through glass" },
 ] as const;
 
-/** Header "Accessibility" menu: switches saved in a cookie so every page loads that way. */
-export function AccessibilityMenu({ initial, className }: { initial: DisplayPrefs; className?: string }) {
+function Switch({ label, hint, on, onToggle }: { label: string; hint: string; on: boolean; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      onClick={onToggle}
+      className="flex min-h-(--tap) w-full items-center justify-between gap-4 rounded-lg px-3 py-2 text-left hover:bg-warm"
+    >
+      <span>
+        <span className="block font-bold">{label}</span>
+        <span className="block text-sm text-muted">{hint}</span>
+      </span>
+      {/* On/Off in words too: never colour alone. */}
+      <span className="flex shrink-0 items-center gap-2 font-bold" aria-hidden="true">
+        <span className={on ? "text-primary" : "text-muted"}>{on ? "On" : "Off"}</span>
+        <span className={`relative h-7 w-12 rounded-full border-2 elder:h-8 elder:w-14 ${on ? "border-primary bg-primary" : "border-field bg-bg"}`}>
+          <span
+            className={`absolute top-1/2 size-4 -translate-y-1/2 rounded-full transition-[left] duration-200 elder:size-5 ${on ? "left-6 bg-on-primary elder:left-7" : "left-1 bg-field"}`}
+          />
+        </span>
+      </span>
+    </button>
+  );
+}
+
+/** Header "Accessibility" menu: switches saved in cookies so every page loads that way. */
+export function AccessibilityMenu({
+  initial,
+  initialElderMode = false,
+  className,
+}: {
+  initial: DisplayPrefs;
+  initialElderMode?: boolean;
+  className?: string;
+}) {
   const [prefs, setPrefs] = useState(initial);
+  const [elderMode, setElderMode] = useState(initialElderMode);
 
   function toggle(key: (typeof OPTIONS)[number]["key"]) {
     const next = { ...prefs, [key]: !prefs[key] };
@@ -35,35 +71,24 @@ export function AccessibilityMenu({ initial, className }: { initial: DisplayPref
       }
     >
       <ul className="flex flex-col gap-1" role="list">
+        <li className="border-b-2 border-line pb-1">
+          <Switch
+            label="Simple large layout"
+            hint="Bigger words and buttons, calmer movement"
+            on={elderMode}
+            onToggle={() => {
+              applyModeInBrowser(!elderMode);
+              setElderMode(!elderMode);
+            }}
+          />
+        </li>
         {OPTIONS.map(({ key, label, hint }) => (
           <li key={key}>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={prefs[key]}
-              onClick={() => toggle(key)}
-              className="flex min-h-(--tap) w-full items-center justify-between gap-4 rounded-lg px-3 py-2 text-left hover:bg-warm"
-            >
-              <span>
-                <span className="block font-bold">{label}</span>
-                <span className="block text-muted">{hint}</span>
-              </span>
-              {/* On/Off in words too: never colour alone. */}
-              <span className="flex shrink-0 items-center gap-2 font-bold" aria-hidden="true">
-                <span className={prefs[key] ? "text-primary" : "text-muted"}>{prefs[key] ? "On" : "Off"}</span>
-                <span
-                  className={`relative h-8 w-14 rounded-full border-2 ${prefs[key] ? "border-primary bg-primary" : "border-field bg-bg"}`}
-                >
-                  <span
-                    className={`absolute top-1/2 size-5 -translate-y-1/2 rounded-full transition-[left] ${prefs[key] ? "left-7 bg-on-primary" : "left-1 bg-field"}`}
-                  />
-                </span>
-              </span>
-            </button>
+            <Switch label={label} hint={hint} on={prefs[key]} onToggle={() => toggle(key)} />
           </li>
         ))}
       </ul>
-      <p className="mt-2 px-3 pb-1 text-muted">Light or dark follows your device setting.</p>
+      <p className="mt-2 px-3 pb-1 text-sm text-muted">Light or dark follows your device setting.</p>
     </Dropdown>
   );
 }

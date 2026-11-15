@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Atkinson_Hyperlegible } from "next/font/google";
 import { cookies } from "next/headers";
 import { SiteHeader } from "@/components/SiteHeader";
+import { ELDER_CLASS, isElderMode, MODE_COOKIE } from "@/lib/mode";
 import { parsePrefs, prefsClassName, PREFS_COOKIE } from "@/lib/prefs";
 import "./globals.css";
 
@@ -24,15 +25,18 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   // Display prefs from a cookie so <html> has the right classes before first paint (no flash).
-  const prefs = parsePrefs((await cookies()).get(PREFS_COOKIE)?.value);
+  const jar = await cookies();
+  const prefs = parsePrefs(jar.get(PREFS_COOKIE)?.value);
+  // Elders get the large, calm layout; everyone else the standard one (src/lib/mode.ts).
+  const elderMode = isElderMode(jar.get(MODE_COOKIE)?.value);
 
   return (
-    <html lang="en" className={`${atkinson.variable} ${prefsClassName(prefs)}`}>
+    <html lang="en" className={`${atkinson.variable} ${prefsClassName(prefs)} ${elderMode ? ELDER_CLASS : ""}`}>
       <body className="flex min-h-screen flex-col font-sans has-[.bottom-nav]:pb-20 sm:has-[.bottom-nav]:pb-0">
         <a href="#main" className="skip-link">
           Skip to main content
         </a>
-        <SiteHeader prefs={prefs} />
+        <SiteHeader prefs={prefs} elderMode={elderMode} />
         <main id="main" tabIndex={-1} className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:py-10">
           {children}
         </main>

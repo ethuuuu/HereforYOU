@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLayoutEffect, useRef } from "react";
 
 export type NavIcon = "today" | "medicines" | "visits" | "people" | "activity";
 export type NavLink = { href: string; label: string; icon: NavIcon; phone: boolean };
@@ -32,11 +33,35 @@ export function CircleNav({ links }: { links: NavLink[] }) {
   const path = usePathname();
   // The first link is the circle root, so it only matches exactly; others also match sub-pages.
   const isCurrent = (href: string, i: number) => (i === 0 ? path === href : path === href || path.startsWith(`${href}/`));
+  const barRef = useRef<HTMLLIElement>(null);
+
+  // Slide one underline to the current tab. Until this runs (server render, no JS) each
+  // current tab draws its own underline; data-ready hands that job to the sliding bar.
+  useLayoutEffect(() => {
+    const bar = barRef.current;
+    const list = bar?.parentElement;
+    if (!bar || !list) return;
+    const tab = list.querySelector<HTMLElement>('[aria-current="page"]');
+    const place = () => {
+      bar.style.width = `${tab?.offsetWidth ?? 0}px`;
+      bar.style.translate = `${tab?.offsetLeft ?? 0}px 0`;
+    };
+    place();
+    // Next frame, so the first placement doesn't slide in from the left edge.
+    const frame = requestAnimationFrame(() => (list.dataset.ready = ""));
+    // Text size changes (Accessibility menu) and the tabs showing on wider screens resize the tab.
+    const observer = tab && typeof ResizeObserver !== "undefined" ? new ResizeObserver(place) : null;
+    if (tab) observer?.observe(tab);
+    return () => {
+      cancelAnimationFrame(frame);
+      observer?.disconnect();
+    };
+  }, [path]);
 
   return (
     <>
       <nav aria-label="Circle sections" className="hidden border-b-2 border-line sm:block">
-        <ul className="flex gap-1" role="list">
+        <ul className="group relative flex gap-1" role="list">
           {links.map((link, i) => {
             const current = isCurrent(link.href, i);
             return (
@@ -45,7 +70,9 @@ export function CircleNav({ links }: { links: NavLink[] }) {
                   href={link.href}
                   aria-current={current ? "page" : undefined}
                   className={`-mb-0.5 inline-flex min-h-(--tap) items-center border-b-4 px-4 font-bold no-underline ${
-                    current ? "border-primary text-primary" : "border-transparent text-muted hover:border-line hover:text-ink"
+                    current
+                      ? "border-primary text-primary group-data-ready:border-transparent"
+                      : "border-transparent text-muted hover:border-line hover:text-ink"
                   }`}
                 >
                   {link.label}
@@ -53,6 +80,11 @@ export function CircleNav({ links }: { links: NavLink[] }) {
               </li>
             );
           })}
+          <li
+            ref={barRef}
+            aria-hidden="true"
+            className="pointer-events-none absolute -bottom-0.5 left-0 hidden h-1 rounded-full bg-primary group-data-ready:block group-data-ready:transition-[translate,width] group-data-ready:duration-300 group-data-ready:ease-(--ease) elder:group-data-ready:duration-200"
+          />
         </ul>
       </nav>
 
@@ -64,7 +96,7 @@ export function CircleNav({ links }: { links: NavLink[] }) {
                 <Link
                   href={link.href}
                   aria-current={isCurrent(link.href, i) ? "page" : undefined}
-                  className={`flex min-h-16 flex-col items-center justify-center gap-0.5 border-t-4 px-1 pt-1 pb-2 text-center leading-tight font-bold no-underline hyphens-auto ${
+                  className={`flex min-h-16 flex-col items-center active:scale-95 elder:active:scale-100 justify-center gap-0.5 border-t-4 px-1 pt-1 pb-2 text-center leading-tight font-bold no-underline hyphens-auto ${
                     isCurrent(link.href, i) ? "border-primary text-primary" : "border-transparent text-muted"
                   }`}
                 >

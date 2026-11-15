@@ -1,7 +1,9 @@
+import { cookies } from "next/headers";
 import { requireUser } from "@/lib/auth/session";
 import { claimCircle, type ClaimResult } from "@/lib/data/circles";
 import { ClaimCircleSchema } from "@/lib/domain/schemas";
 import { handle, HttpError, json, readJson } from "@/lib/http";
+import { modeCookie } from "@/lib/mode";
 
 const ERRORS: Record<Exclude<ClaimResult, "ok">, [number, string]> = {
   invalid: [403, "Those codes didn't work. Check both codes, or ask for a new confirmation code."],
@@ -17,6 +19,7 @@ export function POST(req: Request) {
     const input = await readJson(req, ClaimCircleSchema);
     const { result, circleId } = await claimCircle(user, input);
     if (result !== "ok") throw new HttpError(...ERRORS[result]);
+    (await cookies()).set(modeCookie(true)); // now the elder: large, simple layout
     return json({ circleId });
   });
 }

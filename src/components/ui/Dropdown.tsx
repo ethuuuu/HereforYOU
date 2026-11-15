@@ -54,20 +54,20 @@ export function Dropdown({
       >
         {icon}
         {label}
-        <span aria-hidden="true" className={`transition-transform ${open ? "rotate-180" : ""}`}>
+        <span aria-hidden="true" className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`}>
           ▾
         </span>
       </button>
-      {open && (
-        <div
-          id={panelId}
-          role="group"
-          aria-label={panelLabel}
-          className="animate-pop absolute right-0 z-40 mt-2 w-[min(24rem,calc(100vw-2rem))] glass rounded-lg border-2 border-line p-3 shadow-xl"
-        >
-          {children}
-        </div>
-      )}
+      {/* Always mounted so it can fade/scale out too (.pop-panel); `hidden` keeps it out of reach when closed. */}
+      <div
+        id={panelId}
+        role="group"
+        aria-label={panelLabel}
+        hidden={!open}
+        className="pop-panel absolute right-0 z-40 mt-2 w-[min(24rem,calc(100vw-2rem))] glass rounded-lg border-2 border-line p-3 shadow-xl"
+      >
+        {children}
+      </div>
     </div>
   );
 }

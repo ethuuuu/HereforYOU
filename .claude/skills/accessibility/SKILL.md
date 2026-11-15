@@ -6,8 +6,8 @@ description: Elder-first accessible UI rules for Here For YOU — large text mod
 # Accessibility (elders are the primary users)
 
 Checklist for every UI change:
-- Text in `rem`; base 18px; large-text mode ≥ 22px (class on `<html>`). Line height ≥ 1.5.
-- Targets ≥ 48×48px; spacing ≥ 8px between targets; primary action full-width on mobile.
+- Text in `rem`. Elder mode (`elder-mode` on `<html>`): base 18px, targets ≥ 48px, calm motion; standard mode: 16px, targets ≥ 44px, fluid motion. Use the `elder:` variant for differences (AGENTS.md §12). Large-text ≥ 22px in elder mode. Line height ≥ 1.5.
+- Targets ≥ 48×48px (elder) / 44×44px (standard); spacing ≥ 8px between targets; primary action full-width on mobile.
 - Contrast ≥ 4.5:1 (high-contrast mode ≥ 7:1). Status = icon + word, never colour alone.
 - One `h1`; headings in order; landmarks `header/nav/main/footer`; skip link to `#main`.
 - Every input has a visible `<label>`; hints and errors via `aria-describedby`; errors say how to fix ("Enter time like 8:00 AM").

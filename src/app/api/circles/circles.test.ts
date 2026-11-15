@@ -7,6 +7,9 @@ import { member } from "@/test/fixtures";
 
 // ── Mocks ──────────────────────────────────────────────────────────────────
 
+const setCookie = vi.hoisted(() => vi.fn());
+vi.mock("next/headers", () => ({ cookies: async () => ({ set: setCookie }) }));
+
 vi.mock("@/lib/auth/session", () => {
   class UnauthorizedError extends Error {}
   return { requireUser: vi.fn(), UnauthorizedError };
@@ -91,6 +94,7 @@ describe("POST /api/circles", () => {
       expect.objectContaining({ setupRole: "elder", elderName: "Asha" }),
       "Asha",
     );
+    expect(setCookie).toHaveBeenCalledWith(expect.objectContaining({ name: "hfy_mode", value: "elder" }));
   });
 
   it("returns 401 when not signed in", async () => {
@@ -152,6 +156,7 @@ describe("POST /api/circles", () => {
     );
     expect(res.status).toBe(201);
     expect((await res.json()).claimCode).toBe("042315");
+    expect(setCookie).not.toHaveBeenCalled(); // the relative keeps the standard layout
   });
 });
 
@@ -228,6 +233,7 @@ describe("POST /api/circles/claim", () => {
     );
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ circleId: "c1" });
+    expect(setCookie).toHaveBeenCalledWith(expect.objectContaining({ name: "hfy_mode", value: "elder" }));
   });
 
   it("returns 403 when codes are invalid", async () => {

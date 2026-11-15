@@ -8,11 +8,16 @@ const VARIANTS: Record<ButtonVariant, string> = {
   danger: "bg-danger text-on-primary hover:opacity-90",
 };
 
-/** Shared look for buttons and button-styled links: ≥ 48px tall, full width on phones. */
+/**
+ * Shared look for buttons and button-styled links: ≥ 44px tall (48px+ in elder mode), full width on phones.
+ * Standard mode lifts on hover and presses in; elder mode keeps only the gentle press.
+ */
 export function buttonClass(variant: ButtonVariant = "primary", className = ""): string {
   return [
-    "inline-flex min-h-(--tap) w-full items-center justify-center gap-2 rounded-md px-6 py-3",
-    "text-lg font-bold no-underline active:scale-[0.98] sm:w-auto",
+    "inline-flex min-h-(--tap) w-full items-center justify-center gap-2 rounded-md px-5 py-2.5 sm:w-auto",
+    "text-base font-bold no-underline elder:px-6 elder:py-3 elder:text-lg",
+    "hover:-translate-y-px hover:shadow-md active:translate-y-0 active:scale-[0.97] active:shadow-none",
+    "elder:hover:translate-y-0 elder:hover:shadow-none elder:active:scale-[0.98]",
     "disabled:cursor-not-allowed disabled:opacity-60",
     VARIANTS[variant],
     className,

@@ -10,7 +10,10 @@ vi.mock("@/lib/auth/session", () => {
   class UnauthorizedError extends Error {}
   return { createSession: vi.fn(), clearSession: vi.fn(), requireUser: vi.fn(), UnauthorizedError };
 });
-vi.mock("@/lib/data/users", () => ({ ensureUser: vi.fn() }));
+vi.mock("@/lib/data/users", async (orig) => ({
+  pathForProfile: (await orig<typeof import("@/lib/data/users")>()).pathForProfile,
+  ensureUser: vi.fn(),
+}));
 vi.mock("@/lib/data/members", () => ({ getMember: vi.fn() }));
 
 const { createSession, clearSession } = await import("@/lib/auth/session");

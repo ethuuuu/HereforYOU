@@ -8,7 +8,7 @@ import { cookies } from "next/headers";
 import { adminAuth } from "@/lib/firebase/admin";
 
 export const SESSION_COOKIE = "hfy_session";
-const SESSION_DAYS = 5;
+const SESSION_DAYS = 14; // Firebase's maximum: elders shouldn't have to sign in often
 
 /** Verifies a fresh ID token, sets the session cookie and returns who signed in. */
 export async function createSession(idToken: string): Promise<SessionUser> {

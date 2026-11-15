@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getSessionUser } from "@/lib/auth/session";
+import { homePathFor } from "@/lib/data/users";
 import { buttonClass } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 
@@ -20,7 +23,10 @@ const BENEFITS = [
   },
 ];
 
-export default function Home() {
+/** Signed-in people go straight to their circle (or setup if they have none); everyone else sees the intro. */
+export default async function Home() {
+  const user = await getSessionUser();
+  if (user) redirect(await homePathFor(user.uid));
   return (
     <div className="flex flex-col gap-12">
       <section aria-labelledby="intro" className="rounded-3xl bg-warm px-6 py-10 sm:px-10 sm:py-14">

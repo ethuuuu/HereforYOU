@@ -74,3 +74,14 @@ export function renderReminder(action: ReminderAction, ctx: Ctx): EmailContent {
   const text = [title, "", ...lines, "", `Open Here For YOU: ${ctx.appUrl}`].join("\n");
   return { subject: title, text, html: layout(title, lines, ctx) };
 }
+
+/** A message one circle member writes to others (via the assistant). `layout` escapes all text. */
+export function renderPersonalEmail(msg: { from: string; subject: string; message: string }, ctx: Ctx): EmailContent {
+  const footer = `Sent by ${msg.from} from ${ctx.elderName}'s care circle on Here For YOU.`;
+  const lines = [...msg.message.split(/\n+/).filter(Boolean), footer];
+  return {
+    subject: `${msg.subject} — from ${msg.from}`,
+    text: [...lines, "", `Open Here For YOU: ${ctx.appUrl}`].join("\n\n"),
+    html: layout(msg.subject, lines, ctx),
+  };
+}

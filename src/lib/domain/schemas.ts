@@ -262,3 +262,15 @@ export const PrescriptionRequestSchema = z
 export const SaveQuestionsSchema = z.object({
   questions: z.array(z.string().trim().min(1).max(140)).max(5),
 });
+
+/* ---------- Tasks (to-dos the assistant adds; shown on Today) ---------- */
+
+export const TaskInputSchema = z.object({
+  title: z.string().trim().min(1, "Required").max(120),
+  date: LocalDateSchema,
+  time: LocalTimeSchema.optional(),
+});
+export type TaskInput = z.infer<typeof TaskInputSchema>;
+
+/** circles/{id}/tasks/{autoId} */
+export type Task = TaskInput & { id: string; createdBy: string; createdAt: string };

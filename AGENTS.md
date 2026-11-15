@@ -145,6 +145,7 @@ circles/{circleId}/members/{uid}        # Member type in schemas.ts
 circles/{circleId}/medications/{medId}  # Medication type
 circles/{circleId}/doseLogs/{doseId}    # DoseLog type; doseId = `${medId}_${YYYY-MM-DD}_${HHMM}`
 circles/{circleId}/appointments/{id}    # Appointment type (startsAt computed server-side)
+circles/{circleId}/tasks/{autoId}       # { title, date, time?, createdBy, createdAt } — assistant to-dos, shown on Today
 circles/{circleId}/activity/{autoId}    # { actorUid, actorName, action, summary, at }
 circles/{circleId}/sentReminders/{key}  # { kind, sentAt, recipientCount } — idempotency
 ```
@@ -209,6 +210,11 @@ Prompts live in `src/lib/ai/prompts.ts` as named builders next to their zod outp
 - **Prescription → draft schedule:** text or photo (`images`) → `MedicationInput[]` draft. Shown as editable cards; **nothing is saved until the elder/caretaker confirms**.
 - **Doctor visit prep:** adherence summary + notes → 3–5 plain questions, saved on the appointment.
 - **Weekly summary (stretch):** adherence + upcoming → short, kind, plain-language paragraph.
+- **Assistant** (`/c/[id]/assistant`, tools in `src/lib/assistant/tools.ts`): chat by text or voice
+  (`transcribeAudio`), Gemini function calling via `chatWithTools`. Only tools the role may use are
+  declared. Read tools run at once; **action tools never run on the model's say-so** — they return a
+  pending action the person confirms ("Yes, do it"), then the route re-validates (zod) + `assertCan`
+  and executes with an activity entry. People are named by display name/role, mapped to emails server-side.
 
 Safety rules: wrap user text with `asUserData()`; the system prompt must say the
 assistant does not diagnose or change doses and that a doctor or pharmacist decides;
@@ -224,7 +230,7 @@ Never send more personal data to the model than the feature needs (no emails, no
 - Session cookie: httpOnly, secure in production, sameSite=lax. Sign-out clears it. Mutations accept JSON only.
 - No `dangerouslySetInnerHTML`. Escape all user text in emails (`escapeHtml`).
 - Error responses never include stack traces or internal messages.
-- Add security headers in `next.config.ts` (CSP with `'self'` + Google sign-in domains, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` limiting camera to self).
+- Add security headers in `next.config.ts` (CSP with `'self'` + Google sign-in domains, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` limiting camera and microphone to self).
 
 ## 12. Accessibility rules (scored — elders are the main users)
 

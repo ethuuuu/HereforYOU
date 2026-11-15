@@ -16,7 +16,7 @@ vi.mock("@/lib/env", () => ({
   serverEnv: () => ({ GEMINI_API_KEY: "test-key-123", GEMINI_MODEL: "m", GEMINI_TTS_MODEL: "tts", GEMINI_TTS_VOICE: "v" }),
 }));
 
-const { generateJSON, generateSpeech, toGeminiSchema } = await import("./gemini");
+const { chatWithTools, generateJSON, generateSpeech, toGeminiSchema, transcribeAudio } = await import("./gemini");
 const Schema = z.object({ medications: z.array(z.object({ name: z.string() })), uncertain: z.array(z.string()) });
 const reply = (text: string) => ({ text });
 
@@ -68,5 +68,62 @@ describe("generateSpeech", () => {
     expect(wav.toString("ascii", 0, 4)).toBe("RIFF");
     const config = generateContent.mock.calls[0][0].config;
     expect(config.speechConfig.voiceConfig.prebuiltVoiceConfig.voiceName).toBe("v");
+  });
+});
+
+const parts = (...p: unknown[]) => ({ candidates: [{ content: { role: "model", parts: p } }] });
+
+describe("chatWithTools", () => {
+  const tools = [{ name: "get_medicines", description: "d" }];
+
+  it("returns plain text when the model calls no tool, sending the declarations", async () => {
+    generateContent.mockResolvedValue(parts({ text: "Hello Asha." }));
+    const onToolCall = vi.fn();
+    const out = await chatWithTools({ system: "s", history: [{ role: "user", text: "hi" }], tools, onToolCall });
+    expect(out).toEqual({ text: "Hello Asha." });
+    expect(onToolCall).not.toHaveBeenCalled();
+    expect(generateContent.mock.calls[0][0].config.tools).toEqual([{ functionDeclarations: tools }]);
+  });
+
+  it("runs a tool, sends its result back with the model's turn, then returns the answer", async () => {
+    generateContent
+      .mockResolvedValueOnce(parts({ functionCall: { id: "1", name: "get_medicines", args: {} }, thoughtSignature: "sig" }))
+      .mockResolvedValueOnce(parts({ text: "You take Metformin." }));
+    const onToolCall = vi.fn().mockResolvedValue({ medicines: ["Metformin"] });
+    const out = await chatWithTools({ system: "s", history: [{ role: "user", text: "meds?" }], tools, onToolCall });
+    expect(out.text).toBe("You take Metformin.");
+    expect(onToolCall).toHaveBeenCalledWith({ name: "get_medicines", args: {} });
+    const contents = generateContent.mock.calls[1][0].contents;
+    expect(contents[1].parts[0].thoughtSignature).toBe("sig"); // model turn kept as-is
+    expect(contents[2].parts[0].functionResponse).toEqual({ id: "1", name: "get_medicines", response: { medicines: ["Metformin"] } });
+  });
+
+  it("stops without another model call when onToolCall returns null", async () => {
+    generateContent.mockResolvedValue(parts({ text: "Shall I?" }, { functionCall: { name: "log_dose", args: { doseId: "x" } } }));
+    const out = await chatWithTools({ system: "s", history: [{ role: "user", text: "took it" }], tools, onToolCall: async () => null });
+    expect(out).toEqual({ text: "Shall I?", stoppedAt: { name: "log_dose", args: { doseId: "x" } } });
+    expect(generateContent).toHaveBeenCalledTimes(1);
+  });
+
+  it("gives up after maxRounds of tool calls", async () => {
+    generateContent.mockResolvedValue(parts({ functionCall: { name: "get_medicines", args: {} } }));
+    const out = await chatWithTools({ system: "s", history: [{ role: "user", text: "x" }], tools, onToolCall: async () => ({}), maxRounds: 2 });
+    expect(out).toEqual({ text: "" });
+    expect(generateContent).toHaveBeenCalledTimes(2);
+  });
+
+  it("wraps SDK failures in AIError", async () => {
+    generateContent.mockRejectedValue(new Error("boom"));
+    await expect(chatWithTools({ system: "s", history: [{ role: "user", text: "x" }], tools, onToolCall: vi.fn() })).rejects.toThrow(
+      /Gemini request failed/,
+    );
+  });
+});
+
+describe("transcribeAudio", () => {
+  it("sends the audio inline and returns the words", async () => {
+    generateContent.mockResolvedValue(parts({ text: " I took my tablets " }));
+    expect(await transcribeAudio({ mimeType: "audio/webm", base64: "AAAA" })).toBe("I took my tablets");
+    expect(generateContent.mock.calls[0][0].contents[0].parts[0]).toEqual({ inlineData: { mimeType: "audio/webm", data: "AAAA" } });
   });
 });

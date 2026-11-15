@@ -4,8 +4,9 @@
  * model id from Google AI Studio).
  */
 import "server-only";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Modality } from "@google/genai";
 import type { z } from "zod";
+import { pcmToWav, sampleRateOf } from "@/lib/audio";
 import { serverEnv } from "@/lib/env";
 import { jsonInstruction, parseModelJSON } from "./json";
 
@@ -53,6 +54,31 @@ export async function generateText(opts: GenerateOptions): Promise<string> {
     const message = err instanceof Error ? err.message : String(err);
     throw new AIError(`Gemini request failed: ${message}`);
   }
+}
+
+// Style direction for the voice; Gemini TTS speaks only the text after it.
+const SPEECH_STYLE = "Read this aloud slowly, warmly and clearly, like a kind nurse talking to an older person:";
+
+/** Natural-sounding speech for `text`, as a playable WAV file. */
+export async function generateSpeech(text: string): Promise<Buffer> {
+  const { GEMINI_TTS_MODEL, GEMINI_TTS_VOICE } = serverEnv();
+  let audio: { data?: string; mimeType?: string } | undefined;
+  try {
+    const res = await gemini().models.generateContent({
+      model: GEMINI_TTS_MODEL,
+      contents: [{ role: "user", parts: [{ text: `${SPEECH_STYLE}\n\n${text}` }] }],
+      config: {
+        responseModalities: [Modality.AUDIO],
+        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: GEMINI_TTS_VOICE } } },
+      },
+    });
+    audio = res.candidates?.[0]?.content?.parts?.find((p) => p.inlineData?.data)?.inlineData;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw new AIError(`Gemini speech failed: ${message}`);
+  }
+  if (!audio?.data) throw new AIError("Gemini returned no audio.");
+  return pcmToWav(Buffer.from(audio.data, "base64"), sampleRateOf(audio.mimeType));
 }
 
 /** Structured output validated with zod; retries once with the validation error. */

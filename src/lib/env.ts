@@ -10,6 +10,8 @@ const ServerEnvSchema = z.object({
   FIREBASE_SERVICE_ACCOUNT_BASE64: z.string().min(100),
   GEMINI_API_KEY: z.string().min(10),
   GEMINI_MODEL: z.string().min(3),
+  GEMINI_TTS_MODEL: z.string().min(3).default("gemini-3.8-flash-tts"),
+  GEMINI_TTS_VOICE: z.string().min(2).default("Sulafat"), // a warm, calm prebuilt voice
   GMAIL_USER: z.email(),
   GMAIL_APP_PASSWORD: z.string().min(16),
   QSTASH_CURRENT_SIGNING_KEY: z.string().min(10),

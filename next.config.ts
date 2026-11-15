@@ -11,6 +11,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' data: blob: https://lh3.googleusercontent.com",
   "font-src 'self' https://fonts.gstatic.com",
+  "media-src 'self' blob:", // Read aloud plays Gemini speech from a blob: URL
   "connect-src 'self' https://*.googleapis.com https://apis.google.com",
   "frame-src https://*.firebaseapp.com https://*.web.app https://accounts.google.com",
   "object-src 'none'",

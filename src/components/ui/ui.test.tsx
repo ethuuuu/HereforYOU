@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DisplayToggles } from "@/components/DisplayToggles";
@@ -10,6 +10,7 @@ import { ReadAloud } from "./ReadAloud";
 import { Toast } from "./Toast";
 
 afterEach(() => {
+  cleanup();
   vi.unstubAllGlobals();
   document.documentElement.className = "";
   document.cookie = "hfy_prefs=; Max-Age=0; Path=/";
@@ -52,7 +53,7 @@ describe("Toast", () => {
 });
 
 describe("ReadAloud", () => {
-  it("speaks the text and can be stopped", async () => {
+  function stubSpeech() {
     const speak = vi.fn();
     const cancel = vi.fn();
     vi.stubGlobal("speechSynthesis", { speak, cancel });
@@ -64,20 +65,45 @@ describe("ReadAloud", () => {
         constructor(public text: string) {}
       },
     );
+    return { speak, cancel };
+  }
+  function stubAudio() {
+    const play = vi.fn().mockResolvedValue(undefined);
+    const pause = vi.fn();
+    vi.stubGlobal("Audio", class { src = ""; onended: (() => void) | null = null; play = play; pause = pause; });
+    URL.createObjectURL = vi.fn(() => "blob:voice");
+    return { play, pause };
+  }
+
+  it("plays Gemini's natural voice and can be stopped", async () => {
+    const { speak } = stubSpeech();
+    const { play, pause } = stubAudio();
+    const fetchMock = vi.fn().mockResolvedValue(new Response(new Blob(["wav"]), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
     const user = userEvent.setup();
     render(<ReadAloud text="Metformin at 8:00 AM" />);
 
     await user.click(screen.getByRole("button", { name: "Read aloud" }));
-    expect(speak).toHaveBeenCalledWith(expect.objectContaining({ text: "Metformin at 8:00 AM" }));
+    expect(fetchMock).toHaveBeenCalledWith("/api/tts", expect.objectContaining({ method: "POST" }));
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ text: "Metformin at 8:00 AM" });
+    expect(play).toHaveBeenCalled();
+    expect(speak).not.toHaveBeenCalled();
 
     await user.click(screen.getByRole("button", { name: "Stop reading" }));
-    expect(cancel).toHaveBeenCalled();
+    expect(pause).toHaveBeenCalled();
     expect(screen.getByRole("button", { name: "Read aloud" })).toBeInTheDocument();
   });
 
-  it("renders nothing where speech is not supported", () => {
-    const { container } = render(<ReadAloud text="Hello" />);
-    expect(container).toBeEmptyDOMElement();
+  it("falls back to the browser voice when Gemini is unavailable", async () => {
+    const { speak } = stubSpeech();
+    stubAudio();
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("{}", { status: 502 })));
+    const user = userEvent.setup();
+    render(<ReadAloud text="Aspirin at 9:00 PM" />);
+
+    await user.click(screen.getByRole("button", { name: "Read aloud" }));
+    expect(speak).toHaveBeenCalledWith(expect.objectContaining({ text: "Aspirin at 9:00 PM" }));
+    expect(screen.getByRole("button", { name: "Stop reading" })).toBeInTheDocument();
   });
 });
 

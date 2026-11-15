@@ -39,7 +39,12 @@ export default async function AppointmentsPage({ params }: PageProps<"/c/[id]/ap
             </Link>
           )}
         </div>
-        {upcoming.length === 0 && <p className="text-lg text-muted">No upcoming appointments.</p>}
+        {upcoming.length === 0 && (
+          <p className="text-lg text-muted">
+            No upcoming appointments.
+            {canEdit ? "" : " The elder, a caretaker or a doctor can add them."}
+          </p>
+        )}
         <ul className="flex flex-col gap-4" role="list">
           {upcoming.map((a) => card(a, canAsk))}
         </ul>

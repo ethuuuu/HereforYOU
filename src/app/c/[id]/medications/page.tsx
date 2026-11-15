@@ -42,7 +42,12 @@ export default async function MedicationsPage({ params }: PageProps<"/c/[id]/med
         )}
       </div>
 
-      {meds.length === 0 && <p className="text-lg text-muted">No medicines yet.</p>}
+      {meds.length === 0 && (
+        <p className="text-lg text-muted">
+          No medicines yet.
+          {canEdit ? " Add the first one above." : " The elder, a caretaker or a doctor can add them."}
+        </p>
+      )}
 
       <ul className="flex flex-col gap-4" role="list">
         {meds.map((m) => {

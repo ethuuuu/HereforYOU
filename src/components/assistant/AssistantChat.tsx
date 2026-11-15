@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { ReadAloud } from "@/components/ui/ReadAloud";
 import { Toast } from "@/components/ui/Toast";
 import { sendJson } from "@/lib/api-client";
+import { recordingToWav } from "@/lib/wav";
 
 type Turn = { role: "user" | "model"; text: string; link?: { href: string; label: string }; result?: boolean };
 type Pending = { tool: string; args: Record<string, unknown>; summary: string };
@@ -82,9 +83,11 @@ export function AssistantChat({ circleId }: { circleId: string }) {
         stream.getTracks().forEach((t) => t.stop());
         setBusy("transcribing");
         const blob = new Blob(chunks, { type: rec.mimeType });
+        // WAV is on Gemini's supported list (Chrome's WebM isn't); fall back to the original if decoding fails.
+        const wav = await recordingToWav(blob).catch(() => null);
         const res = await sendJson<{ text: string }>(`${url}/transcribe`, "POST", {
-          mimeType: rec.mimeType.split(";")[0],
-          base64: await toBase64(blob),
+          mimeType: wav ? "audio/wav" : rec.mimeType.split(";")[0],
+          base64: await toBase64(wav ?? blob),
         });
         setBusy(null);
         if (!res.ok) return setError(res.error);

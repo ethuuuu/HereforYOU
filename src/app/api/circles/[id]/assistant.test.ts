@@ -24,6 +24,7 @@ vi.mock("@/lib/data/medications", () => ({ getMedication: vi.fn(), listActiveMed
 vi.mock("@/lib/data/doseLogs", () => ({ listDoseLogs: vi.fn(), logDose: vi.fn() }));
 vi.mock("@/lib/data/appointments", () => ({ createAppointment: vi.fn(), listAppointmentsBetween: vi.fn() }));
 vi.mock("@/lib/data/tasks", () => ({ createTask: vi.fn() }));
+vi.mock("@/lib/data/rateLimits", () => ({ enforceRateLimit: vi.fn() }));
 vi.mock("@/lib/data/activity", () => ({ logActivity: vi.fn() }));
 vi.mock("@/lib/email/mailer", () => ({ sendEmail: vi.fn() }));
 
@@ -37,6 +38,8 @@ const { createAppointment } = await import("@/lib/data/appointments");
 const { createTask } = await import("@/lib/data/tasks");
 const { logActivity } = await import("@/lib/data/activity");
 const { sendEmail } = await import("@/lib/email/mailer");
+const { enforceRateLimit } = await import("@/lib/data/rateLimits");
+const { HttpError } = await import("@/lib/http");
 const { POST } = await import("@/app/api/circles/[id]/assistant/route");
 const { POST: transcribe } = await import("@/app/api/circles/[id]/assistant/transcribe/route");
 
@@ -225,6 +228,20 @@ describe("POST /api/circles/[id]/assistant — confirm", () => {
     vi.mocked(sendEmail).mockRejectedValue(new Error("smtp down"));
     expect((await confirm("send_email", { to: ["Priya"], subject: "x", message: "y" })).status).toBe(502);
     expect(logActivity).not.toHaveBeenCalled();
+  });
+});
+
+describe("assistant rate limits", () => {
+  it("answers 429 without calling Gemini once the hourly message limit is used up", async () => {
+    vi.mocked(enforceRateLimit).mockRejectedValueOnce(new HttpError(429, "slow down"));
+    const res = await ask("hello");
+    expect(res.status).toBe(429);
+    expect(chatWithTools).not.toHaveBeenCalled();
+  });
+
+  it("applies a tighter, separate limit to confirmed emails", async () => {
+    await POST(post({ confirm: { tool: "send_email", args: { to: ["Priya"], subject: "Hi", message: "Hello" } } }), ctx);
+    expect(enforceRateLimit).toHaveBeenCalledWith("assistant-email:u-elder", 10);
   });
 });
 

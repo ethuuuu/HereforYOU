@@ -4,6 +4,7 @@ import { assistantHistory, assistantSystemPrompt } from "@/lib/ai/prompts";
 import { executeAction, handleModelCall, toolDeclarations, type Pending } from "@/lib/assistant/tools";
 import { getCircle } from "@/lib/data/circles";
 import { formatLocalDate, formatLocalTime, localDateOf } from "@/lib/domain/time";
+import { enforceRateLimit } from "@/lib/data/rateLimits";
 import { json, NotFoundError, readJson, withCircle } from "@/lib/http";
 
 export const maxDuration = 60;
@@ -30,6 +31,9 @@ export async function POST(req: Request, ctx: RouteContext<"/api/circles/[id]/as
   const { id } = await ctx.params;
   return withCircle(req, id, "ai.use", async ({ member }) => {
     const body = await readJson(req, BodySchema);
+    // Every message is a paid Gemini call, and emails reach real inboxes: cap both per account.
+    await enforceRateLimit(`ai-assistant:${member.id}`, 60);
+    if ("confirm" in body && body.confirm.tool === "send_email") await enforceRateLimit(`assistant-email:${member.id}`, 10);
     const circle = await getCircle(id);
     if (!circle) throw new NotFoundError("Care circle");
     const toolCtx = { circle, member };

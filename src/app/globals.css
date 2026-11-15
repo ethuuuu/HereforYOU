@@ -1,58 +1,61 @@
 @import "tailwindcss";
 
 /*
- * "Warm paper, deep teal": calm and legible for older eyes. Light and dark follow the
- * system setting; high contrast has its own light and dark sets. Text sizes are rem off
- * <html>, so "large-text" scales everything and browser zoom still works.
- * Text colours target AAA (7:1) against their backgrounds.
+ * Starbucks-inspired, elder-first (design-md/starbucks): warm café cream, deep greens,
+ * gold kept for highlights. Adapted for older eyes: 18px+ type (Atkinson Hyperlegible),
+ * every text colour >= 7:1 (AAA) in light, dark and both high-contrast sets.
+ * Light/dark follows the device setting. Sizes are rem, so "large-text" scales everything.
  */
 :root {
   color-scheme: light;
-  --bg: #faf7f2;
+  --bg: #f2f0eb; /* café cream */
   --surface: #ffffff;
-  --warm: #f3ede3;
-  --ink: #1b2420;
-  --muted: #3f4844;
-  --primary: #0c524e;
-  --primary-hover: #083b38;
+  --warm: #edebe9; /* ceramic */
+  --ink: #1e1e1c;
+  --muted: #4a4741;
+  --primary: #00563a; /* Starbucks Green, deepened for AAA text */
+  --primary-hover: #1e3932; /* House Green */
   --on-primary: #ffffff;
-  --line: #ddd3c4;
-  --field: #6e665b;
+  --gold: #cba258; /* decoration only, never text */
+  --line: #d9d3c7;
+  --field: #6b665f;
   --danger: #8f1f16;
-  --success: #145a2f;
-  --focus: #b45309; /* amber ring: visible on teal, paper and white */
+  --success: #164a30;
+  --focus: #b45309;
   --tap: 3rem; /* minimum touch target: 48px+, grows with larger text */
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+/* Dark: built from House Green, with Starbucks gold as the focus ring. */
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
-    --bg: #111816;
-    --surface: #18211e;
-    --warm: #1f2a26;
-    --ink: #eef2ef;
-    --muted: #b4c0ba;
-    --primary: #6fd0c6;
-    --primary-hover: #9be0d8;
-    --on-primary: #062421;
-    --line: #33413c;
-    --field: #8c9a93;
-    --danger: #ff9e92;
-    --success: #86d9a0;
-    --focus: #ffc46b;
+    --bg: #10201b;
+    --surface: #1e3932;
+    --warm: #24443b;
+    --ink: #f2f0eb;
+    --muted: #d3ddd7;
+    --primary: #a3e6c3;
+    --primary-hover: #c4f0d8;
+    --on-primary: #0b2a20;
+    --gold: #e8c77d;
+    --line: #2f5247;
+    --field: #8fa89c;
+    --danger: #ffcbc3;
+    --success: #a8e6bf;
+    --focus: #e8c77d;
   }
 }
 
-/* High contrast: ≥ 7:1 everywhere, solid borders, no tints. */
+/* High contrast: >= 7:1 everywhere, solid borders, no tints. */
 .high-contrast {
   --bg: #ffffff;
   --surface: #ffffff;
   --warm: #ffffff;
   --ink: #000000;
   --muted: #1a1a1a;
-  --primary: #003b38;
-  --primary-hover: #00211f;
+  --primary: #00422c;
+  --primary-hover: #00261a;
   --on-primary: #ffffff;
   --line: #000000;
   --field: #000000;
@@ -67,8 +70,8 @@
     --warm: #000000;
     --ink: #ffffff;
     --muted: #f0f0f0;
-    --primary: #8ff5ea;
-    --primary-hover: #c4fff8;
+    --primary: #9df0c4;
+    --primary-hover: #cbffe3;
     --on-primary: #000000;
     --line: #ffffff;
     --field: #ffffff;
@@ -96,6 +99,7 @@
   --color-field: var(--field);
   --color-danger: var(--danger);
   --color-success: var(--success);
+  --color-gold: var(--gold);
   --font-sans: var(--font-atkinson), system-ui, -apple-system, "Segoe UI", sans-serif;
   /* Elders read this: "small" text never drops below the 18px base (AGENTS.md §12). */
   --text-xs: 1rem;

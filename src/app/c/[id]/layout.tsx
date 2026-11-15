@@ -18,7 +18,7 @@ export default async function CircleLayout({ children, params }: LayoutProps<"/c
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="rounded-2xl bg-warm px-5 py-4">
+      <div className="rounded-2xl border-t-4 border-gold bg-warm px-5 py-4">
         <p className="font-bold uppercase tracking-wide text-muted">Care circle</p>
         <h1 className="text-3xl font-bold text-primary">{circle.elderName}</h1>
       </div>

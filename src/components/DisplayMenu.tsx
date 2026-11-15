@@ -54,7 +54,7 @@ export function DisplayMenu({ initial }: { initial: DisplayPrefs }) {
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen(!open)}
-        className="inline-flex min-h-(--tap) items-center gap-2 rounded-2xl border-2 border-primary px-4 font-bold text-primary hover:bg-warm aria-expanded:bg-warm"
+        className="inline-flex min-h-(--tap) items-center gap-2 rounded-full border-2 border-primary px-4 font-bold text-primary hover:bg-warm aria-expanded:bg-warm"
       >
         <span aria-hidden="true">Aa</span>
         Display

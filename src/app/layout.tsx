@@ -17,8 +17,8 @@ export const metadata: Metadata = {
 // Browser toolbar matches the page in light and dark mode.
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#faf7f2" },
-    { media: "(prefers-color-scheme: dark)", color: "#111816" },
+    { media: "(prefers-color-scheme: light)", color: "#f2f0eb" },
+    { media: "(prefers-color-scheme: dark)", color: "#10201b" },
   ],
 };
 

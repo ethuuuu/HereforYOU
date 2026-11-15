@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const BASE = "inline-flex min-h-(--tap) items-center rounded-2xl border-2 border-primary px-4 py-2 text-base font-bold no-underline transition-colors";
+const BASE = "inline-flex min-h-(--tap) items-center rounded-full border-2 border-primary px-4 py-2 text-base font-bold no-underline transition-colors";
 
 /** Circle section tabs. The current section is filled in and announced with aria-current. */
 export function CircleNav({ links }: { links: { href: string; label: string }[] }) {

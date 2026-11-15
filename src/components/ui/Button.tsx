@@ -11,7 +11,7 @@ const VARIANTS: Record<ButtonVariant, string> = {
 /** Shared look for buttons and button-styled links: ≥ 48px tall, full width on phones. */
 export function buttonClass(variant: ButtonVariant = "primary", className = ""): string {
   return [
-    "inline-flex min-h-(--tap) w-full items-center justify-center gap-2 rounded-2xl px-6 py-3",
+    "inline-flex min-h-(--tap) w-full items-center justify-center gap-2 rounded-full px-6 py-3",
     "text-lg font-bold no-underline active:scale-[0.98] sm:w-auto",
     "disabled:cursor-not-allowed disabled:opacity-60",
     VARIANTS[variant],

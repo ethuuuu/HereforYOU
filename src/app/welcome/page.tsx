@@ -61,7 +61,7 @@ export default async function WelcomePage() {
           <li key={role.id}>
             <Link
               href={role.href}
-              className={`${buttonClass("secondary")} h-auto w-full flex-col items-start gap-1 rounded-3xl px-6 py-5 text-left sm:flex-row sm:items-center sm:gap-6`}
+              className={`${buttonClass("secondary")} h-auto w-full flex-col items-start gap-1 rounded-lg px-6 py-5 text-left sm:flex-row sm:items-center sm:gap-6`}
             >
               <span aria-hidden="true" className="text-4xl">
                 {role.icon}

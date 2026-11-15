@@ -1,49 +1,50 @@
 @import "tailwindcss";
 
 /*
- * Starbucks-inspired, elder-first (design-md/starbucks): warm café cream, deep greens,
- * gold kept for highlights. Adapted for older eyes: 18px+ type (Atkinson Hyperlegible),
- * every text colour >= 7:1 (AAA) in light, dark and both high-contrast sets.
- * Light/dark follows the device setting. Sizes are rem, so "large-text" scales everything.
+ * "Calm navy & cream": trustworthy and quiet, like a good clinic letter. Navy carries text
+ * and actions, cream is the page, coral is kept for things that need attention.
+ * Every text colour >= 7:1 (AAA) in light, dark and both high-contrast sets.
+ * Light/dark follows the device. Sizes are rem, so "large-text" scales everything.
  */
 :root {
   color-scheme: light;
-  --bg: #f2f0eb; /* café cream */
+  --bg: #faf7f2; /* cream */
   --surface: #ffffff;
-  --warm: #edebe9; /* ceramic */
-  --ink: #1e1e1c;
-  --muted: #4a4741;
-  --primary: #00563a; /* Starbucks Green, deepened for AAA text */
-  --primary-hover: #1e3932; /* House Green */
+  --warm: #f1ece4;
+  --ink: #1a2233;
+  --muted: #414a5c;
+  --primary: #1f3a5f; /* navy */
+  --primary-hover: #152a46;
   --on-primary: #ffffff;
-  --gold: #cba258; /* decoration only, never text */
-  --line: #d9d3c7;
-  --field: #6b665f;
-  --danger: #8f1f16;
-  --success: #164a30;
-  --focus: #b45309;
+  --accent: #c2410c; /* coral: borders, icons, focus — attention only */
+  --accent-ink: #7c2d12; /* coral for text */
+  --line: #e2dbd0;
+  --field: #6b7280;
+  --danger: #991b1b;
+  --success: #14532d;
+  --focus: #c2410c;
   --tap: 3rem; /* minimum touch target: 48px+, grows with larger text */
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-/* Dark: built from House Green, with Starbucks gold as the focus ring. */
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
-    --bg: #10201b;
-    --surface: #1e3932;
-    --warm: #24443b;
-    --ink: #f2f0eb;
-    --muted: #d3ddd7;
-    --primary: #a3e6c3;
-    --primary-hover: #c4f0d8;
-    --on-primary: #0b2a20;
-    --gold: #e8c77d;
-    --line: #2f5247;
-    --field: #8fa89c;
-    --danger: #ffcbc3;
-    --success: #a8e6bf;
-    --focus: #e8c77d;
+    --bg: #0f1726;
+    --surface: #172238;
+    --warm: #1e2c46;
+    --ink: #f3efe8;
+    --muted: #c8cfdb;
+    --primary: #a9cbf5;
+    --primary-hover: #cfe2fb;
+    --on-primary: #0b1a30;
+    --accent: #fb923c;
+    --accent-ink: #fdba74;
+    --line: #2e3d57;
+    --field: #8b97ab;
+    --danger: #fecaca;
+    --success: #a7f3c4;
+    --focus: #fdba74;
   }
 }
 
@@ -54,9 +55,11 @@
   --warm: #ffffff;
   --ink: #000000;
   --muted: #1a1a1a;
-  --primary: #00422c;
-  --primary-hover: #00261a;
+  --primary: #0b2545;
+  --primary-hover: #04152b;
   --on-primary: #ffffff;
+  --accent: #7c2d12;
+  --accent-ink: #7c2d12;
   --line: #000000;
   --field: #000000;
   --danger: #7a0f08;
@@ -70,9 +73,11 @@
     --warm: #000000;
     --ink: #ffffff;
     --muted: #f0f0f0;
-    --primary: #9df0c4;
-    --primary-hover: #cbffe3;
+    --primary: #bfdbfe;
+    --primary-hover: #e0edff;
     --on-primary: #000000;
+    --accent: #fed7aa;
+    --accent-ink: #fed7aa;
     --line: #ffffff;
     --field: #ffffff;
     --danger: #ffb4ab;
@@ -99,7 +104,8 @@
   --color-field: var(--field);
   --color-danger: var(--danger);
   --color-success: var(--success);
-  --color-gold: var(--gold);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
   --font-sans: var(--font-atkinson), system-ui, -apple-system, "Segoe UI", sans-serif;
   /* Elders read this: "small" text never drops below the 18px base (AGENTS.md §12). */
   --text-xs: 1rem;

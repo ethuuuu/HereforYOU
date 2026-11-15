@@ -18,12 +18,12 @@ export type TodayDose = {
 };
 
 // Icon + words, never colour alone.
-const BADGE: Record<DoseState, { text: string; className: string }> = {
-  upcoming: { text: "Upcoming", className: "border-line text-muted" },
-  due: { text: "⏰ Due now", className: "border-primary text-primary" },
-  taken: { text: "✓ Taken", className: "border-success text-success" },
-  skipped: { text: "– Skipped", className: "border-line text-muted" },
-  missed: { text: "! Missed", className: "border-danger text-danger" },
+const BADGE: Record<DoseState, { text: string; className: string; stripe: string }> = {
+  upcoming: { text: "Upcoming", className: "border-line text-muted", stripe: "border-l-line" },
+  due: { text: "⏰ Due now", className: "border-accent text-accent-ink", stripe: "border-l-accent" },
+  taken: { text: "✓ Taken", className: "border-success text-success", stripe: "border-l-success" },
+  skipped: { text: "– Skipped", className: "border-line text-muted", stripe: "border-l-line" },
+  missed: { text: "! Missed", className: "border-danger text-danger", stripe: "border-l-danger" },
 };
 
 /** Today's doses as big cards with "I took it" / "Skip". Updates in place, then refreshes the page data. */
@@ -55,18 +55,23 @@ export function DoseList({ circleId, doses, canLog }: { circleId: string; doses:
           const badge = BADGE[state];
           const headingId = `dose-${d.doseId}`;
           return (
-            <li key={d.doseId} aria-labelledby={headingId} className="rounded-3xl border-2 border-line bg-surface p-6">
+            <li
+              key={d.doseId}
+              aria-labelledby={headingId}
+              className={`rounded-lg border-2 border-l-8 border-line bg-surface p-5 shadow-sm sm:p-6 ${badge.stripe}`}
+            >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <h3 id={headingId} className="text-2xl font-bold">
-                    {d.time} · {d.name}
+                    <span className="block text-3xl text-primary">{d.time}</span>
+                    {d.name}
                   </h3>
                   <p className="text-lg">
                     {d.dose}
                     {d.instructions ? ` — ${d.instructions}` : ""}
                   </p>
                 </div>
-                <p className={`rounded-xl border-2 px-3 py-1 font-bold ${badge.className}`}>{badge.text}</p>
+                <p className={`rounded-md border-2 px-3 py-1 font-bold ${badge.className}`}>{badge.text}</p>
               </div>
               {canLog && state !== "taken" && (
                 <div className="mt-4 flex flex-col gap-3 sm:flex-row">

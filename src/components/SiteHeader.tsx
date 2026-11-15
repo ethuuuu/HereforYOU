@@ -1,47 +1,43 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { AccessibilityMenu } from "@/components/AccessibilityMenu";
+import { AccountMenu } from "@/components/AccountMenu";
 import { buttonClass } from "@/components/ui/Button";
-import { DisplayMenu } from "@/components/DisplayMenu";
-import { SignOutButton } from "@/components/SignOutButton";
 import { getSessionUser } from "@/lib/auth/session";
 import type { DisplayPrefs } from "@/lib/prefs";
 
-/** Checking the session is a network call, so it streams in without holding up the page. */
 async function HeaderUser() {
   const user = await getSessionUser();
   if (!user) {
     return (
-      <Link href="/signin" className={buttonClass("secondary")}>
+      <Link href="/signin" className={buttonClass("primary", "w-auto!")}>
         Sign in
       </Link>
     );
   }
-  return (
-    <div className="flex flex-wrap items-center gap-3">
-      <p>
-        Signed in as <strong>{user.name ?? user.email ?? "you"}</strong>
-      </p>
-      <Link href="/settings" className={buttonClass("secondary", "w-auto!")}>
-        Settings
-      </Link>
-      <SignOutButton />
-    </div>
-  );
+  return <AccountMenu name={user.name ?? user.email ?? "you"} />;
 }
 
+/**
+ * Phones: brand + Account on one row, a full-width Accessibility button below.
+ * Wider screens: everything on one row.
+ */
 export function SiteHeader({ prefs }: { prefs: DisplayPrefs }) {
   return (
-    <header className="no-print border-b-2 border-line bg-bg">
-      <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-4 py-4">
-        <Link href="/" className="text-2xl font-bold text-primary no-underline">
+    <header className="no-print border-b-2 border-line bg-surface">
+      <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3">
+        <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-primary no-underline">
+          <span aria-hidden="true" className="grid size-9 place-items-center rounded-lg bg-primary text-lg text-on-primary">
+            ♥
+          </span>
           Here For YOU
         </Link>
-        <div className="flex flex-wrap items-center gap-3">
-          <DisplayMenu initial={prefs} />
+        <div className="flex items-center gap-3 sm:order-last">
           <Suspense fallback={null}>
             <HeaderUser />
           </Suspense>
         </div>
+        <AccessibilityMenu initial={prefs} className="order-last w-full sm:order-none sm:ml-auto sm:w-auto" />
       </div>
     </header>
   );

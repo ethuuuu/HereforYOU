@@ -65,7 +65,7 @@ export function NotifyPrefsForm({ circleId, initial }: { circleId: string; initi
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-2 text-lg font-bold">Email me when…</legend>
         {(Object.keys(PREF_LABELS) as (keyof NotifyPrefs)[]).map((k) => (
-          <label key={k} className="inline-flex min-h-(--tap) items-center gap-3 rounded-xl border-2 border-field px-4 text-lg">
+          <label key={k} className="inline-flex min-h-(--tap) items-center gap-3 rounded-lg border-2 border-field px-4 text-lg">
             <input
               type="checkbox"
               checked={prefs[k]}

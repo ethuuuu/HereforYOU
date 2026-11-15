@@ -26,7 +26,7 @@ const ROLE_COLORS: Record<CircleRole, string> = {
 function RoleBadge({ role }: { role: CircleRole }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-bold ${ROLE_COLORS[role]}`}
+      className={`inline-flex items-center rounded-md px-3 py-1 text-sm font-bold ${ROLE_COLORS[role]}`}
     >
       {ROLE_LABELS[role]}
     </span>
@@ -80,7 +80,7 @@ export function MembersManager({ circleId, members: initial, myRole, hasElder }:
 
       <ul className="flex flex-col gap-4" role="list" aria-label="Circle members">
         {members.map((m) => (
-          <li key={m.id} className="rounded-3xl border-2 border-line bg-surface px-6 py-5">
+          <li key={m.id} className="rounded-lg border-2 border-line bg-surface px-6 py-5">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex flex-col gap-1">
                 <span className="text-xl font-bold">{m.name}</span>
@@ -95,7 +95,7 @@ export function MembersManager({ circleId, members: initial, myRole, hasElder }:
                 <label className="flex flex-col gap-1">
                   <span className="text-sm font-bold">Change role</span>
                   <select
-                    className="min-h-(--tap) rounded-xl border-2 border-field bg-bg px-3 py-2 text-base"
+                    className="min-h-(--tap) rounded-lg border-2 border-field bg-bg px-3 py-2 text-base"
                     value={m.role}
                     disabled={busy === m.id}
                     aria-label={`Role for ${m.name}`}

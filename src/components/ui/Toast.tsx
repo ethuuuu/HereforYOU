@@ -15,7 +15,7 @@ export function Toast({ message, tone = "info" }: { message?: string | null; ton
   return (
     <div role="status" aria-live="polite" aria-atomic="true">
       {message && (
-        <p className={`flex items-start gap-3 rounded-2xl border-2 bg-surface px-5 py-4 font-bold ${className}`}>
+        <p className={`flex items-start gap-3 rounded-lg border-2 bg-surface px-5 py-4 font-bold ${className}`}>
           <span aria-hidden="true">{icon}</span>
           <span>{message}</span>
         </p>

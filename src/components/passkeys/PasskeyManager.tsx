@@ -48,7 +48,7 @@ export function PasskeyManager({ passkeys }: { passkeys: PasskeyRow[] }) {
       ) : (
         <ul className="flex flex-col gap-4" role="list">
           {passkeys.map((p) => (
-            <li key={p.id} className="flex flex-col gap-3 rounded-2xl border-2 border-line p-4">
+            <li key={p.id} className="flex flex-col gap-3 rounded-lg border-2 border-line p-4">
               <p className="text-xl font-bold">{p.deviceName}</p>
               <p>
                 Added {p.created}. {p.lastUsed ? `Last used ${p.lastUsed}.` : "Not used yet."}

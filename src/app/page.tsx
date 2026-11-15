@@ -29,7 +29,7 @@ export default async function Home() {
   if (user) redirect(await homePathFor(user.uid));
   return (
     <div className="flex flex-col gap-12">
-      <section aria-labelledby="intro" className="rounded-3xl bg-warm px-6 py-10 sm:px-10 sm:py-14">
+      <section aria-labelledby="intro" className="rounded-lg bg-warm px-6 py-10 sm:px-10 sm:py-14">
         <h1 id="intro" className="text-4xl font-bold leading-tight text-primary sm:text-5xl">
           Here For YOU
         </h1>

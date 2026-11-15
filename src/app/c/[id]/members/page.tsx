@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { MembersManager, RotatePasscodeForm } from "@/components/circle/MembersManager";
 import { NotifyPrefsForm, SendRemindersNow } from "@/components/circle/ReminderControls";
 import { ShareCard } from "@/components/circle/ShareCard";
@@ -7,7 +8,7 @@ import { requireCircleMember } from "@/lib/auth/page";
 import { assertCan, can } from "@/lib/auth/permissions";
 import { listMembers } from "@/lib/data/members";
 
-export const metadata: Metadata = { title: "Members" };
+export const metadata: Metadata = { title: "People" };
 
 export default async function MembersPage({ params }: PageProps<"/c/[id]/members">) {
   const { id } = await params;
@@ -23,11 +24,16 @@ export default async function MembersPage({ params }: PageProps<"/c/[id]/members
     <div className="flex flex-col gap-8">
       <section aria-labelledby="members-heading">
         <h2 id="members-heading" className="text-3xl font-bold">
-          Members
+          People
         </h2>
         <p className="mt-2 text-muted">
           {members.length} {members.length === 1 ? "person" : "people"} in this care circle.
         </p>
+        {can(member.role, "activity.view") && (
+          <Link href={`/c/${id}/activity`} className="mt-3 inline-flex min-h-(--tap) items-center font-bold">
+            See every change in the activity log →
+          </Link>
+        )}
       </section>
 
       <MembersManager

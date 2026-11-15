@@ -88,7 +88,7 @@ export function PrescriptionImport({ circleId, today }: { circleId: string; toda
           <label htmlFor={textId} className="text-lg font-bold">
             Paste the prescription text
           </label>
-          <textarea id={textId} name="text" rows={6} maxLength={4000} className="rounded-xl border-2 border-field bg-bg px-4 py-2 text-lg" />
+          <textarea id={textId} name="text" rows={6} maxLength={4000} className="rounded-lg border-2 border-field bg-bg px-4 py-2 text-lg" />
         </div>
         <Field label="Or add a photo of it" hint="JPEG, PNG or WebP, up to 4 MB." type="file" name="photo" accept="image/jpeg,image/png,image/webp" />
         <Button type="submit" loading={reading} loadingText="Reading your prescription…">

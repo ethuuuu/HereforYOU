@@ -2,7 +2,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { DisplayMenu } from "@/components/DisplayMenu";
+import { AccessibilityMenu } from "@/components/AccessibilityMenu";
 import { DEFAULT_PREFS } from "@/lib/prefs";
 import { Button } from "./Button";
 import { Field } from "./Field";
@@ -107,11 +107,11 @@ describe("ReadAloud", () => {
   });
 });
 
-describe("DisplayMenu", () => {
+describe("AccessibilityMenu", () => {
   it("opens, switches settings on and off, applies <html> classes and saves a cookie", async () => {
     const user = userEvent.setup();
-    render(<DisplayMenu initial={DEFAULT_PREFS} />);
-    const menu = screen.getByRole("button", { name: "Display" });
+    render(<AccessibilityMenu initial={DEFAULT_PREFS} />);
+    const menu = screen.getByRole("button", { name: "Accessibility" });
     expect(menu).toHaveAttribute("aria-expanded", "false");
 
     await user.click(menu);
@@ -130,10 +130,10 @@ describe("DisplayMenu", () => {
     expect(document.documentElement).not.toHaveClass("large-text");
   });
 
-  it("closes on Escape and returns focus to the Display button", async () => {
+  it("closes on Escape and returns focus to the Accessibility button", async () => {
     const user = userEvent.setup();
-    render(<DisplayMenu initial={DEFAULT_PREFS} />);
-    const menu = screen.getByRole("button", { name: "Display" });
+    render(<AccessibilityMenu initial={DEFAULT_PREFS} />);
+    const menu = screen.getByRole("button", { name: "Accessibility" });
     await user.click(menu);
     await user.keyboard("{Escape}");
     expect(menu).toHaveAttribute("aria-expanded", "false");

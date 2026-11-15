@@ -28,12 +28,12 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
 
   return (
     <html lang="en" className={`${atkinson.variable} ${prefsClassName(prefs)}`}>
-      <body className="flex min-h-screen flex-col font-sans">
+      <body className="flex min-h-screen flex-col font-sans has-[.bottom-nav]:pb-20 sm:has-[.bottom-nav]:pb-0">
         <a href="#main" className="skip-link">
           Skip to main content
         </a>
         <SiteHeader prefs={prefs} />
-        <main id="main" tabIndex={-1} className="mx-auto w-full max-w-5xl flex-1 px-4 py-10 sm:py-14">
+        <main id="main" tabIndex={-1} className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:py-10">
           {children}
         </main>
         <footer className="no-print border-t-2 border-line bg-warm">

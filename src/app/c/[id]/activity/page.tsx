@@ -40,7 +40,7 @@ export default async function ActivityPage({ params }: PageProps<"/c/[id]/activi
       ) : (
         <ol className="flex flex-col gap-3" aria-label="Activity entries">
           {entries.map((entry) => (
-            <li key={entry.id} className="rounded-2xl border-2 border-line bg-surface px-5 py-4">
+            <li key={entry.id} className="rounded-lg border-2 border-line bg-surface px-5 py-4">
               <p className="text-lg">{entry.summary}</p>
               <p className="mt-1 text-sm text-muted">
                 <time dateTime={entry.at}>{timeAgo(entry.at)}</time>

@@ -77,7 +77,7 @@ export function AppointmentForm({ circleId, appointment, today }: { circleId: st
           defaultValue={appointment?.notes}
           aria-invalid={errors.notes ? true : undefined}
           aria-describedby={errors.notes ? `${notesId}-error` : undefined}
-          className={`rounded-xl border-2 bg-bg px-4 py-2 text-lg ${errors.notes ? "border-danger" : "border-field"}`}
+          className={`rounded-lg border-2 bg-bg px-4 py-2 text-lg ${errors.notes ? "border-danger" : "border-field"}`}
         />
         {errors.notes && (
           <p id={`${notesId}-error`} className="font-bold text-danger">

@@ -50,6 +50,11 @@
   --color-danger: var(--danger);
   --color-success: var(--success);
   --font-sans: var(--font-atkinson), system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Elders read this: "small" text never drops below the 18px base (AGENTS.md §12). */
+  --text-xs: 1rem;
+  --text-xs--line-height: 1.5;
+  --text-sm: 1rem;
+  --text-sm--line-height: 1.5;
 }
 
 /* 18px base; large-text mode 22px. Percentages respect the user's browser setting. */

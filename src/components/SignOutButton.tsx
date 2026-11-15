@@ -17,7 +17,8 @@ export function SignOutButton() {
   }
 
   return (
-    <Button variant="secondary" onClick={signOut} loading={busy} loadingText="Signing out…">
+    // Header button: never full-width, so the header stays short on phones.
+    <Button variant="secondary" className="w-auto!" onClick={signOut} loading={busy} loadingText="Signing out…">
       Sign out
     </Button>
   );

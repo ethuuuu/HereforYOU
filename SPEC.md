@@ -4,12 +4,12 @@ Build in this order. Each feature is a vertical slice (UI → route → data →
 Tick boxes as you go. Feature 3 complete + deployed = a valid submission; everything after improves the score.
 
 ## F0 · Foundation (≈30 min)
-- [ ] App shell: `layout.tsx` with skip link, header (app name + signed-in user + sign out), `<main id="main">`, footer; `lang="en"`; base font 18px.
-- [ ] Design primitives in `src/components/ui/`: `Button` (≥48px, variants primary/secondary/danger, loading state), `Field` (label, hint, error via `aria-describedby`), `Card`, `Toast` (aria-live), `ReadAloud`.
-- [ ] Accessibility prefs: `largeText` + `highContrast` classes on `<html>` from user prefs (cookie for signed-out users).
-- [ ] `src/lib/http.ts`: `json()`, `withCircle()` error mapping (401/403/400/404/500) + tests.
-- [ ] Security headers in `next.config.ts`.
-- [ ] Landing page `/`: what Here For YOU does (3 benefits), "Get started" and "Sign in".
+- [x] App shell: `layout.tsx` with skip link, header (app name + signed-in user + sign out), `<main id="main">`, footer; `lang="en"`; base font 18px.
+- [x] Design primitives in `src/components/ui/`: `Button` (≥48px, variants primary/secondary/danger, loading state), `Field` (label, hint, error via `aria-describedby`), `Card`, `Toast` (aria-live), `ReadAloud`.
+- [x] Accessibility prefs: `largeText` + `highContrast` classes on `<html>` from user prefs (cookie for signed-out users).
+- [x] `src/lib/http.ts`: `json()`, `withCircle()` error mapping (401/403/400/404/500) + tests.
+- [x] Security headers in `next.config.ts`.
+- [x] Landing page `/`: what Here For YOU does (3 benefits), "Get started" and "Sign in".
 - Done when: `/api/health` shows all integrations `true`; Lighthouse accessibility on `/` ≥ 95.
 
 ## F1 · Accounts (≈1 h 30)

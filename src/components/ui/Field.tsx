@@ -8,7 +8,7 @@ type Described = {
   error?: string;
 };
 
-const CONTROL = "min-h-(--tap) rounded-lg border-2 bg-bg px-4 py-2 text-lg";
+const CONTROL = "min-h-(--tap) rounded-lg border-2 bg-bg px-3 py-2 text-base elder:px-4 elder:text-lg";
 
 /** Label + hint + control + error, wired with aria-describedby / aria-invalid. */
 function Wrapper({
@@ -25,12 +25,12 @@ function Wrapper({
   const describedBy = [hintId, errorId].filter(Boolean).join(" ") || undefined;
 
   return (
-    <div className="flex flex-col gap-2">
-      <label htmlFor={controlId} className="text-lg font-bold">
+    <div className="flex flex-col gap-1.5 elder:gap-2">
+      <label htmlFor={controlId} className="font-bold elder:text-lg">
         {label}
       </label>
       {hint && (
-        <p id={hintId} className="text-muted">
+        <p id={hintId} className="text-sm text-muted">
           {hint}
         </p>
       )}

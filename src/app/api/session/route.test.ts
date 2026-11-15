@@ -4,7 +4,11 @@ import { DEFAULT_PREFS } from "@/lib/prefs";
 
 const cookieJar = new Map<string, string>();
 vi.mock("next/headers", () => ({
-  cookies: async () => ({ get: (name: string) => (cookieJar.has(name) ? { value: cookieJar.get(name) } : undefined) }),
+  cookies: async () => ({
+    get: (name: string) => (cookieJar.has(name) ? { value: cookieJar.get(name) } : undefined),
+    set: ({ name, value }: { name: string; value: string }) => cookieJar.set(name, value),
+    delete: (name: string) => cookieJar.delete(name),
+  }),
 }));
 vi.mock("@/lib/auth/session", () => {
   class UnauthorizedError extends Error {}
@@ -61,6 +65,16 @@ describe("POST /api/session", () => {
     });
   });
 
+  it("turns on the elder layout for elders and the standard layout for everyone else", async () => {
+    vi.mocked(ensureUser).mockResolvedValue({ ...profile(["c1"]), setupRole: "elder" });
+    await signIn({ idToken: "tok" });
+    expect(cookieJar.get("hfy_mode")).toBe("elder");
+
+    vi.mocked(ensureUser).mockResolvedValue({ ...profile(["c1"]), setupRole: "family" });
+    await signIn({ idToken: "tok" });
+    expect(cookieJar.get("hfy_mode")).toBe("standard");
+  });
+
   it("sends a returning member straight to their circle", async () => {
     vi.mocked(ensureUser).mockResolvedValue(profile(["c1"]));
     expect(await (await signIn({ idToken: "tok" })).json()).toEqual({ next: "/c/c1" });
@@ -86,9 +100,11 @@ describe("POST /api/session", () => {
 });
 
 describe("DELETE /api/session", () => {
-  it("signs out by clearing the session cookie", async () => {
+  it("signs out by clearing the session cookie and the UI mode", async () => {
+    cookieJar.set("hfy_mode", "elder");
     const res = await DELETE();
     expect(res.status).toBe(200);
     expect(clearSession).toHaveBeenCalled();
+    expect(cookieJar.has("hfy_mode")).toBe(false);
   });
 });

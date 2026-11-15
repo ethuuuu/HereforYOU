@@ -14,6 +14,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
   document.documentElement.className = "";
   document.cookie = "hfy_prefs=; Max-Age=0; Path=/";
+  document.cookie = "hfy_mode=; Max-Age=0; Path=/";
 });
 
 describe("Field", () => {
@@ -129,6 +130,23 @@ describe("AccessibilityMenu", () => {
 
     await user.click(larger);
     expect(document.documentElement).not.toHaveClass("large-text");
+  });
+
+  it("lets anyone switch the simple large layout (elder mode) on and off", async () => {
+    const user = userEvent.setup();
+    render(<AccessibilityMenu initial={DEFAULT_PREFS} initialElderMode />);
+    await user.click(screen.getByRole("button", { name: "Accessibility" }));
+    const simple = screen.getByRole("switch", { name: /Simple large layout/ });
+    expect(simple).toHaveAttribute("aria-checked", "true");
+
+    await user.click(simple);
+    expect(simple).toHaveAttribute("aria-checked", "false");
+    expect(document.documentElement).not.toHaveClass("elder-mode");
+    expect(document.cookie).toContain("hfy_mode=standard");
+
+    await user.click(simple);
+    expect(document.documentElement).toHaveClass("elder-mode");
+    expect(document.cookie).toContain("hfy_mode=elder");
   });
 
   it("closes on Escape and returns focus to the Accessibility button", async () => {

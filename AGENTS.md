@@ -228,12 +228,15 @@ Never send more personal data to the model than the feature needs (no emails, no
 
 ## 12. Accessibility rules (scored — elders are the main users)
 
-- Base font ≥ 18px; **large-text mode** (default on for elders) ≥ 22px. Use `rem`, never fixed px for text.
-- Touch targets ≥ 48×48px. Primary actions are full-width buttons on mobile.
+- **Two UI modes** (`src/lib/mode.ts`, `hfy_mode` cookie → `elder-mode` class on `<html>`, no Firestore read per page):
+  - **Elder mode** — set at sign-in when `users/{uid}.setupRole === "elder"`, and when someone creates a circle as the elder or claims one. Base font ≥ 18px, `text-xs`/`text-sm` never below the base, touch targets ≥ 48×48px, calmer and shorter motion. **Large-text mode** (default on for new elders) ≥ 22px.
+  - **Standard mode** — family, caretakers, doctors, organisers and signed-out visitors: 16px base, Tailwind's normal small sizes, targets ≥ 44×44px, fluid motion (hover lift, press, sliding tab underline, dropdown/page transitions, skeleton shimmer).
+  - Anyone can switch with "Simple large layout" in the Accessibility menu; sign-out clears the mode. Style mode differences with the `elder:` variant (e.g. `text-base elder:text-lg`) or CSS variables under `.elder-mode`.
+- Use `rem`, never fixed px for text. Sizes with `min-h-(--tap)` follow the mode. Primary actions are full-width buttons on mobile.
 - Colour contrast ≥ 4.5:1 (7:1 in high-contrast mode). Never use colour alone for status — add an icon + text ("✓ Taken", "! Missed").
 - Semantic landmarks, one `h1` per page, logical headings, visible `<label>` on every field, helpful error text linked with `aria-describedby`.
 - Full keyboard use, visible focus ring, skip-to-content link, `aria-live="polite"` for results, toasts and AI output.
-- Respect `prefers-reduced-motion`. `<html lang="en">`.
+- Respect `prefers-reduced-motion` **and** the "Reduce motion" switch (both turn every animation off, in both modes). `<html lang="en">`.
 - **Read-aloud** button (Web Speech `speechSynthesis`) on the Today view and AI output.
 - Plain language: "Medicines", not "medication regimen". Times as "8:00 AM".
 

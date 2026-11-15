@@ -10,6 +10,13 @@ describe("permissions matrix", () => {
     expect(can("doctor", "medications.edit")).toBe(true);
     expect(can("family", "medications.edit")).toBe(false);
   });
+  it("lets only elder, organiser and caretaker send reminders now", () => {
+    expect(can("elder", "reminders.run")).toBe(true);
+    expect(can("organiser", "reminders.run")).toBe(true);
+    expect(can("caretaker", "reminders.run")).toBe(true);
+    expect(can("doctor", "reminders.run")).toBe(false);
+    expect(can("family", "reminders.run")).toBe(false);
+  });
   it("keeps member management away from non-elders", () => {
     expect(can("caretaker", "members.manage")).toBe(false);
     expect(can("doctor", "members.view")).toBe(false);

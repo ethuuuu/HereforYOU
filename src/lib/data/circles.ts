@@ -23,7 +23,13 @@ export async function getCircle(circleId: string): Promise<Circle | null> {
   return snap.exists ? { id: snap.id, ...(snap.data() as Omit<Circle, "id">) } : null;
 }
 
-export type CreatedCircle = { circleId: string; code: string; claimCode?: string };
+/** Every active circle — what the reminder runner walks. One query, 1 read per circle. */
+export async function listActiveCircles(): Promise<Circle[]> {
+  const snap = await db().collection("circles").where("active", "==", true).get();
+  return snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Circle, "id">) }));
+}
+
+export type CreatedCircle ={ circleId: string; code: string; claimCode?: string };
 
 /**
  * Creates the circle, reserves its code, adds the creator (elder, or organiser

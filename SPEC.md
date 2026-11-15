@@ -56,12 +56,12 @@ Tick boxes as you go. Feature 3 complete + deployed = a valid submission; everyt
 - [x] Tests: create route computes `startsAt` in the circle time zone; calendar link present.
 
 ## F5 · Reminder emails (≈1 h)
-- [ ] `src/lib/data/*` queries for the runner (AGENTS.md §9 read budget).
-- [ ] `src/lib/reminders/runner.ts`: per circle → `planReminders` → `renderReminder` → `sendEmail` per recipient → record `sentReminders/{key}`.
-- [ ] `GET|POST /api/reminders/run` with `authorizeTrigger`; `POST /api/circles/[id]/reminders/run-now`.
-- [ ] "Send reminders now" button on the members/settings page (elder/caretaker/organiser) showing results in a live region.
-- [ ] Notification preferences per member (checkboxes for each kind).
-- [ ] Tests: runner with mocked data + mailer (sends, skips already-sent, one failure doesn't stop others); route rejects unsigned calls (401).
+- [x] `src/lib/data/*` queries for the runner (AGENTS.md §9 read budget).
+- [x] `src/lib/reminders/runner.ts`: per circle → `planReminders` → `renderReminder` → `sendEmail` per recipient → record `sentReminders/{key}`.
+- [x] `GET|POST /api/reminders/run` with `authorizeTrigger`; `POST /api/circles/[id]/reminders/run-now`.
+- [x] "Send reminders now" button on the members/settings page (elder/caretaker/organiser) showing results in a live region.
+- [x] Notification preferences per member (checkboxes for each kind).
+- [x] Tests: runner with mocked data + mailer (sends, skips already-sent, one failure doesn't stop others); route rejects unsigned calls (401).
 - Done when: a medicine due 15 min ago with no log → "Send reminders now" → elder receives the missed email; pressing again sends nothing.
 
 ## F6 · Gemini features (≈45 min)

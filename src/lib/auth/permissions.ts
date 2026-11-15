@@ -17,6 +17,7 @@ export const ACTIONS = [
   "reports.view",
   "activity.view",
   "ai.use",
+  "reminders.run", // "Send reminders now" (demo / manual trigger)
 ] as const;
 export type Action = (typeof ACTIONS)[number];
 
@@ -36,6 +37,7 @@ const MATRIX: Record<CircleRole, ReadonlySet<Action>> = {
     "reports.view",
     "activity.view",
     "ai.use",
+    "reminders.run",
   ]),
   doctor: new Set<Action>([
     "profile.view",

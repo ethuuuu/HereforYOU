@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { buttonClass } from "@/components/ui/Button";
+import { medsOwnerName } from "@/components/medications/MedsNotAllowed";
 import { Card } from "@/components/ui/Card";
 import { requireCircleMember } from "@/lib/auth/page";
-import { assertCan, can } from "@/lib/auth/permissions";
+import { assertCan, can, canEditMedicines } from "@/lib/auth/permissions";
 import { listMedications } from "@/lib/data/medications";
 import { daysOfSupplyLeft } from "@/lib/domain/schedule";
 import { formatLocalTime, localDateOf, zonedToUtc } from "@/lib/domain/time";
@@ -16,7 +17,9 @@ export default async function MedicationsPage({ params }: PageProps<"/c/[id]/med
   const { id } = await params;
   const { member, circle } = await requireCircleMember(id);
   assertCan(member.role, "medications.view");
-  const canEdit = can(member.role, "medications.edit");
+  const canEdit = canEditMedicines(member);
+  // Only people whose role could edit, but who haven't been allowed yet, need to know who to ask.
+  const askName = !canEdit && can(member.role, "medications.edit") ? await medsOwnerName(circle) : null;
   const tz = circle.timezone;
   const today = localDateOf(new Date(), tz);
   const meds = (await listMedications(id)).sort((a, b) => Number(b.active) - Number(a.active));
@@ -42,10 +45,16 @@ export default async function MedicationsPage({ params }: PageProps<"/c/[id]/med
         )}
       </div>
 
+      {askName && (
+        <p className="text-lg text-muted">
+          Only people the circle owner has allowed can add medicines. Ask {askName} to allow you.
+        </p>
+      )}
+
       {meds.length === 0 && (
         <p className="text-lg text-muted">
           No medicines yet.
-          {canEdit ? " Add the first one above." : " The elder, a caretaker or a doctor can add them."}
+          {canEdit ? " Add the first one above." : " People the circle owner has allowed, and doctors, can add them."}
         </p>
       )}
 

@@ -2,7 +2,7 @@
  * Who can do what inside a care circle. Every API route calls `assertCan`
  * before touching data. The elder is always in charge.
  */
-import type { CircleRole } from "@/lib/domain/schemas";
+import type { Circle, CircleRole, Member } from "@/lib/domain/schemas";
 
 export const ACTIONS = [
   "profile.view",
@@ -82,4 +82,30 @@ export function canChangeRole(actor: CircleRole, target: CircleRole, next: Circl
   if (target === "elder" || next === "elder") return false; // elder status only via the claim flow
   if (circleHasElder) return actor === "elder";
   return actor === "organiser";
+}
+
+/**
+ * Medicines are added/edited only by people the circle owner allowed. Doctors are
+ * always allowed. Members saved before the flag existed fall back to their role
+ * (elder/organiser yes, others no). The role must also allow `medications.edit`.
+ */
+export function canEditMedicines(m: Pick<Member, "role" | "medsAuthorized">): boolean {
+  if (!can(m.role, "medications.edit")) return false;
+  if (m.role === "doctor") return true;
+  return m.medsAuthorized ?? (m.role === "elder" || m.role === "organiser");
+}
+
+type Owners = Pick<Circle, "createdBy" | "elderUid">;
+
+/** The circle's creator, and the elder once they own it — the people who decide who may add medicines. */
+export const isCircleOwner = (circle: Owners, uid: string) => uid === circle.createdBy || uid === circle.elderUid;
+
+/** Can `actorUid` switch `target`'s medicines permission? Owners and doctors are always allowed, so never switchable. */
+export function canSetMedsAuthorized(circle: Owners, actorUid: string, target: Pick<Member, "id" | "role">): boolean {
+  return (
+    isCircleOwner(circle, actorUid) &&
+    !isCircleOwner(circle, target.id) &&
+    target.role !== "doctor" &&
+    can(target.role, "medications.edit")
+  );
 }

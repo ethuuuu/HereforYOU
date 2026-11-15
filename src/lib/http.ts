@@ -5,7 +5,7 @@
  */
 import "server-only";
 import { ZodError, type ZodType } from "zod";
-import { assertCan, ForbiddenError, type Action } from "@/lib/auth/permissions";
+import { assertCan, canEditMedicines, ForbiddenError, type Action } from "@/lib/auth/permissions";
 import { requireUser, UnauthorizedError, type SessionUser } from "@/lib/auth/session";
 import { getMember } from "@/lib/data/members";
 import type { Member } from "@/lib/domain/schemas";
@@ -73,6 +73,7 @@ export type CircleContext = { user: SessionUser; member: Member; circleId: strin
 // could escape the document path), so it's treated as "not found".
 const SAFE_ID = /^[A-Za-z0-9_-]{1,128}$/;
 export const isSafeId = (id: string) => SAFE_ID.test(id);
+export const MEDS_NOT_ALLOWED = "Only people the circle owner has allowed can add or change medicines.";
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
 export function withCircle(
@@ -93,6 +94,7 @@ export function withCircle(
     const member = await getMember(circleId, user.uid);
     if (!member) throw new NotFoundError("Care circle");
     assertCan(member.role, action);
+    if (action === "medications.edit" && !canEditMedicines(member)) throw new HttpError(403, MEDS_NOT_ALLOWED);
     return handler({ user, member, circleId });
   });
 }

@@ -1,7 +1,7 @@
 import "server-only";
 import { FieldValue } from "firebase-admin/firestore";
 import { isLockedOut, nextFailedAttempts, verifyPasscode } from "@/lib/auth/passcode";
-import { canChangeRole } from "@/lib/auth/permissions";
+import { canChangeRole, canSetMedsAuthorized } from "@/lib/auth/permissions";
 import type { SessionUser } from "@/lib/auth/session";
 import { defaultNotifyPrefs } from "@/lib/domain/reminders";
 import type { Circle, CircleRole, JoinCircleInput, Member } from "@/lib/domain/schemas";
@@ -44,6 +44,7 @@ export async function joinCircle(
       role: "family",
       notify: defaultNotifyPrefs("family"),
       joinedAt: now.toISOString(),
+      medsAuthorized: false, // the circle owner decides
     };
     tx.create(memberRef(circleId, user.uid), member);
     tx.set(userRef(user.uid), { setupRole: input.setupRole, circleIds: FieldValue.arrayUnion(circleId) }, { merge: true });
@@ -80,10 +81,12 @@ export async function changeRole(
     const [circleSnap, targetSnap] = await Promise.all([tx.get(circleRef(circleId)), tx.get(memberRef(circleId, targetUid))]);
     const target = targetSnap.data() as Omit<Member, "id"> | undefined;
     if (!target) return "not_found";
-    const hasElder = Boolean((circleSnap.data() as Circle | undefined)?.elderUid);
-    if (targetUid === actor.id || !canChangeRole(actor.role, target.role, next, hasElder)) return "forbidden";
+    const circle = circleSnap.data() as Circle | undefined;
+    if (targetUid === actor.id || !canChangeRole(actor.role, target.role, next, Boolean(circle?.elderUid))) return "forbidden";
     if (target.role === next) return "ok";
-    tx.update(memberRef(circleId, targetUid), { role: next });
+    // Doctors may always add medicines; someone who stops being a doctor loses that (unless they created the circle).
+    const meds = next === "doctor" ? true : target.role === "doctor" && targetUid !== circle?.createdBy ? false : undefined;
+    tx.update(memberRef(circleId, targetUid), { role: next, ...(meds === undefined ? {} : { medsAuthorized: meds }) });
     logActivityIn(tx, circleId, {
       actorUid: actor.id,
       actorName: actor.name,
@@ -114,6 +117,33 @@ export async function removeMember(
       actorName: actor.name,
       action: "member.removed",
       summary: `${actor.name} removed ${target.name} from the circle`,
+    });
+    return "ok";
+  });
+}
+
+/** The circle owner allows (or stops) someone adding and editing medicines. Rules: canSetMedsAuthorized. */
+export async function setMedsAuthorized(
+  circleId: string,
+  actor: Pick<Member, "id" | "name">,
+  targetUid: string,
+  allowed: boolean,
+): Promise<ManageResult> {
+  return db().runTransaction(async (tx): Promise<ManageResult> => {
+    const [circleSnap, targetSnap] = await Promise.all([tx.get(circleRef(circleId)), tx.get(memberRef(circleId, targetUid))]);
+    const circle = circleSnap.data() as Circle | undefined;
+    const target = targetSnap.data() as Omit<Member, "id"> | undefined;
+    if (!circle || !target) return "not_found";
+    if (!canSetMedsAuthorized(circle, actor.id, { id: targetUid, role: target.role })) return "forbidden";
+    if (target.medsAuthorized === allowed) return "ok";
+    tx.update(memberRef(circleId, targetUid), { medsAuthorized: allowed });
+    logActivityIn(tx, circleId, {
+      actorUid: actor.id,
+      actorName: actor.name,
+      action: allowed ? "member.meds_allowed" : "member.meds_stopped",
+      summary: allowed
+        ? `${actor.name} allowed ${target.name} to add medicines`
+        : `${actor.name} stopped ${target.name} adding medicines`,
     });
     return "ok";
   });

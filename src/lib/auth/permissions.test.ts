@@ -1,5 +1,54 @@
 import { describe, expect, it } from "vitest";
-import { assertCan, can, canChangeRole, ForbiddenError } from "./permissions";
+import { member } from "@/test/fixtures";
+import {
+  assertCan,
+  can,
+  canChangeRole,
+  canEditMedicines,
+  canSetMedsAuthorized,
+  ForbiddenError,
+  isCircleOwner,
+} from "./permissions";
+
+describe("canEditMedicines", () => {
+  it.each([
+    ["elder", undefined, true], // saved before the flag existed: role decides
+    ["organiser", undefined, true],
+    ["caretaker", undefined, false],
+    ["family", undefined, false],
+    ["doctor", undefined, true],
+    ["caretaker", true, true],
+    ["caretaker", false, false],
+    ["doctor", false, true], // doctors are always allowed
+    ["family", true, false], // the role must allow editing medicines too
+  ] as const)("%s with medsAuthorized=%s → %s", (role, flag, expected) => {
+    expect(canEditMedicines({ role, medsAuthorized: flag })).toBe(expected);
+  });
+});
+
+describe("canSetMedsAuthorized", () => {
+  const circle = { createdBy: "u-organiser", elderUid: "u-elder" };
+
+  it("treats the creator and the elder as owners", () => {
+    expect(isCircleOwner(circle, "u-organiser")).toBe(true);
+    expect(isCircleOwner(circle, "u-elder")).toBe(true);
+    expect(isCircleOwner(circle, "u-caretaker")).toBe(false);
+    expect(isCircleOwner({ createdBy: "u-organiser" }, "u-elder")).toBe(false);
+  });
+
+  it("lets the creator or the elder switch a caretaker", () => {
+    expect(canSetMedsAuthorized(circle, "u-organiser", member("caretaker"))).toBe(true);
+    expect(canSetMedsAuthorized(circle, "u-elder", member("caretaker"))).toBe(true);
+  });
+
+  it("refuses everyone else, and never switches doctors, owners or family", () => {
+    expect(canSetMedsAuthorized(circle, "u-caretaker", member("caretaker", { id: "u-2" }))).toBe(false);
+    expect(canSetMedsAuthorized(circle, "u-elder", member("doctor"))).toBe(false);
+    expect(canSetMedsAuthorized(circle, "u-elder", member("organiser"))).toBe(false);
+    expect(canSetMedsAuthorized(circle, "u-organiser", member("elder"))).toBe(false);
+    expect(canSetMedsAuthorized(circle, "u-elder", member("family"))).toBe(false);
+  });
+});
 
 describe("permissions matrix", () => {
   it("lets the elder do everything", () => {

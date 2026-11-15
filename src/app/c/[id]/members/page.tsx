@@ -40,7 +40,9 @@ export default async function MembersPage({ params }: PageProps<"/c/[id]/members
         circleId={id}
         members={members}
         myRole={member.role}
+        myId={member.id}
         hasElder={hasElder}
+        owners={{ createdBy: circle.createdBy, elderUid: circle.elderUid }}
       />
 
       <Card>

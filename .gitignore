@@ -42,3 +42,6 @@ next-env.d.ts
 !.env.example
 service-account*.json
 coverage
+
+# Subagent git worktrees
+.claude/worktrees/

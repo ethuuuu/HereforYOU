@@ -1,6 +1,7 @@
 import { AIError, generateJSON } from "@/lib/ai/gemini";
 import { prescriptionPrompt, PrescriptionDraftSchema } from "@/lib/ai/prompts";
 import { PrescriptionRequestSchema } from "@/lib/domain/schemas";
+import { enforceRateLimit } from "@/lib/data/rateLimits";
 import { json, readJson, withCircle } from "@/lib/http";
 
 // A photo read can take a while on a cold start; don't let the platform cut it off early.
@@ -12,8 +13,9 @@ export const maxDuration = 60;
  */
 export async function POST(req: Request, ctx: RouteContext<"/api/circles/[id]/ai/prescription">) {
   const { id } = await ctx.params;
-  return withCircle(req, id, "ai.use", async () => {
+  return withCircle(req, id, "ai.use", async ({ user }) => {
     const { text, image } = await readJson(req, PrescriptionRequestSchema);
+    await enforceRateLimit(`ai-prescription:${user.uid}`, 20);
     const started = performance.now();
     let ok = false;
     try {

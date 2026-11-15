@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { generateRegistrationOptions } from "@simplewebauthn/server";
 import { z } from "zod";
-import { getSessionUser } from "@/lib/auth/session";
+import { getVerifiedUser } from "@/lib/auth/session";
+import { clientIp, enforceRateLimit } from "@/lib/data/rateLimits";
 import { relyingParty, setChallengeCookie } from "@/lib/auth/webauthn";
 import { listPasskeys } from "@/lib/data/passkeys";
 import { saveChallenge } from "@/lib/data/webauthnChallenges";
@@ -16,7 +17,9 @@ const Body = z.object({ displayName: z.string().trim().min(1, "Please enter your
 export function POST(req: Request) {
   return handle(async () => {
     const { displayName } = await readJson(req, Body);
-    const user = await getSessionUser();
+    // Revocation is checked: a revoked session must not be able to add a passkey (a backdoor).
+    const user = await getVerifiedUser();
+    if (!user) await enforceRateLimit(`passkey-signup:${clientIp(req)}`, 20);
     if (!user && !displayName) return json({ error: "Please enter your name.", fields: { displayName: "Please enter your name." } }, 400);
 
     const uid = user?.uid ?? randomUUID().replaceAll("-", ""); // Firebase user is created only after verify

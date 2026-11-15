@@ -49,6 +49,9 @@ async function readSession(checkRevoked: boolean): Promise<SessionUser | null> {
  */
 export const getSessionUser = cache(() => readSession(false));
 
+/** Signed in and not revoked, or null. For mutations that may also run signed out (passkey sign-up). */
+export const getVerifiedUser = () => readSession(true);
+
 /** For route handlers: signed in AND not revoked. */
 export async function requireUser(): Promise<SessionUser> {
   const user = await readSession(true);

@@ -13,6 +13,7 @@ vi.mock("@/lib/ai/gemini", () => {
   class AIError extends Error {}
   return { generateJSON: vi.fn(), AIError };
 });
+vi.mock("@/lib/data/rateLimits", () => ({ enforceRateLimit: vi.fn(), clientIp: () => "203.0.113.7" }));
 vi.mock("@/lib/data/members", () => ({ getMember: vi.fn() }));
 vi.mock("@/lib/data/circles", () => ({ getCircle: vi.fn() }));
 vi.mock("@/lib/data/medications", () => ({ listActiveMedications: vi.fn() }));

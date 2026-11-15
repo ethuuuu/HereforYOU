@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { AIError, generateSpeech } from "@/lib/ai/gemini";
 import { requireUser } from "@/lib/auth/session";
+import { enforceRateLimit } from "@/lib/data/rateLimits";
 import { handle, json, readJson } from "@/lib/http";
 
 // Read-aloud text is short (a day's doses, AI suggestions); the cap bounds cost per call.
@@ -9,7 +10,8 @@ const SpeakSchema = z.object({ text: z.string().trim().min(1).max(1500) });
 /** POST /api/tts — signed-in users only. Text → natural Gemini speech as WAV. Nothing is stored. */
 export function POST(req: Request) {
   return handle(async () => {
-    await requireUser();
+    const user = await requireUser();
+    await enforceRateLimit(`tts:${user.uid}`, 60); // each call is a paid Gemini request
     const { text } = await readJson(req, SpeakSchema);
     try {
       const wav = await generateSpeech(text);

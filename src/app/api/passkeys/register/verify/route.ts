@@ -1,5 +1,5 @@
 import { verifyRegistrationResponse, type RegistrationResponseJSON } from "@simplewebauthn/server";
-import { getSessionUser } from "@/lib/auth/session";
+import { getVerifiedUser } from "@/lib/auth/session";
 import { consumeChallenge, CredentialSchema, deviceNameFrom, PASSKEY_FAILED, relyingParty } from "@/lib/auth/webauthn";
 import { adminAuth } from "@/lib/firebase/admin";
 import { savePasskey } from "@/lib/data/passkeys";
@@ -13,8 +13,8 @@ export function POST(req: Request) {
   return handle(async () => {
     const response = (await readJson(req, CredentialSchema)) as unknown as RegistrationResponseJSON;
     const challenge = await consumeChallenge("register");
-    // Adding to an account needs the same person still signed in.
-    if (!challenge.newUser && (await getSessionUser())?.uid !== challenge.uid) throw new HttpError(401, PASSKEY_FAILED);
+    // Adding to an account needs the same person still signed in (and not revoked).
+    if (!challenge.newUser && (await getVerifiedUser())?.uid !== challenge.uid) throw new HttpError(401, PASSKEY_FAILED);
 
     const { rpID, origin } = relyingParty();
     const result = await verifyRegistrationResponse({

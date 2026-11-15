@@ -8,6 +8,7 @@ import { summarizeAdherence } from "@/lib/domain/adherence";
 import { dosesForRange } from "@/lib/domain/schedule";
 import { SaveQuestionsSchema } from "@/lib/domain/schemas";
 import { addDays, localDateOf } from "@/lib/domain/time";
+import { enforceRateLimit } from "@/lib/data/rateLimits";
 import { isSafeId, json, NotFoundError, readJson, withCircle } from "@/lib/http";
 
 type Ctx = RouteContext<"/api/circles/[id]/appointments/[apptId]/questions">;
@@ -16,7 +17,8 @@ const DAYS = 30;
 /** POST — suggest questions for a visit. Returns them only; nothing is saved until PUT. */
 export async function POST(req: Request, ctx: Ctx) {
   const { id, apptId } = await ctx.params;
-  return withCircle(req, id, "ai.use", async () => {
+  return withCircle(req, id, "ai.use", async ({ user }) => {
+    await enforceRateLimit(`ai-questions:${user.uid}`, 20);
     if (!isSafeId(apptId)) throw new NotFoundError("That appointment");
     const [appt, circle] = await Promise.all([getAppointment(id, apptId), getCircle(id)]);
     if (!appt || !circle) throw new NotFoundError("That appointment");

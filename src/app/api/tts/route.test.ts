@@ -4,6 +4,7 @@ vi.mock("@/lib/auth/session", () => {
   class UnauthorizedError extends Error {}
   return { requireUser: vi.fn(), UnauthorizedError };
 });
+vi.mock("@/lib/data/rateLimits", () => ({ enforceRateLimit: vi.fn(), clientIp: () => "203.0.113.7" }));
 vi.mock("@/lib/ai/gemini", () => {
   class AIError extends Error {}
   return { generateSpeech: vi.fn(), AIError };
@@ -11,6 +12,8 @@ vi.mock("@/lib/ai/gemini", () => {
 
 const { requireUser, UnauthorizedError } = await import("@/lib/auth/session");
 const { generateSpeech, AIError } = await import("@/lib/ai/gemini");
+const { enforceRateLimit } = await import("@/lib/data/rateLimits");
+const { HttpError } = await import("@/lib/http");
 const { POST } = await import("./route");
 
 const req = (body: unknown) =>
@@ -44,6 +47,15 @@ describe("POST /api/tts", () => {
     vi.mocked(requireUser).mockResolvedValue({ uid: "u1" });
     expect((await POST(req({ text: "  " }))).status).toBe(400);
     expect((await POST(req({ text: "a".repeat(1501) }))).status).toBe(400);
+    expect(generateSpeech).not.toHaveBeenCalled();
+  });
+
+  it("rate-limits each account (429) before calling Gemini", async () => {
+    vi.mocked(requireUser).mockResolvedValue({ uid: "u1" });
+    vi.mocked(enforceRateLimit).mockRejectedValueOnce(new HttpError(429, "slow down"));
+    const res = await POST(req({ text: "Hello" }));
+    expect(res.status).toBe(429);
+    expect(enforceRateLimit).toHaveBeenCalledWith("tts:u1", 60);
     expect(generateSpeech).not.toHaveBeenCalled();
   });
 

@@ -13,8 +13,11 @@ vi.mock("@/lib/env", () => ({
 }));
 vi.mock("@/lib/auth/session", () => {
   class UnauthorizedError extends Error {}
+  const getSessionUser = vi.fn();
   return {
-    getSessionUser: vi.fn(),
+    getSessionUser,
+    // In these tests a "valid" session is also unrevoked; revocation itself is Firebase's job.
+    getVerifiedUser: vi.fn((...args: unknown[]) => getSessionUser(...args)),
     requireUser: vi.fn(async () => {
       throw new UnauthorizedError();
     }),
@@ -23,8 +26,10 @@ vi.mock("@/lib/auth/session", () => {
 });
 vi.mock("@/lib/data/members", () => ({ getMember: vi.fn() }));
 vi.mock("@/lib/firebase/admin", () => ({
-  adminAuth: () => ({ createUser: createUserMock, createCustomToken: async (uid: string) => `token-for-${uid}` }),
+  adminAuth: () => ({ createUser: createUserMock, getUser: getUserMock, createCustomToken: async (uid: string) => `token-for-${uid}` }),
 }));
+vi.mock("@/lib/data/rateLimits", () => ({ enforceRateLimit: vi.fn(), clientIp: () => "203.0.113.7" }));
+
 vi.mock("@simplewebauthn/server", () => ({
   generateRegistrationOptions: vi.fn(async () => ({ challenge: "reg-challenge" })),
   generateAuthenticationOptions: vi.fn(async () => ({ challenge: "login-challenge" })),
@@ -44,9 +49,12 @@ vi.mock("@/lib/data/webauthnChallenges", () => ({
   takeChallenge: vi.fn(),
 }));
 const createUserMock = vi.fn();
+const getUserMock = vi.fn(async () => ({ providerData: [{ providerId: "google.com" }] }));
 
 const server = await import("@simplewebauthn/server");
-const { getSessionUser, requireUser } = await import("@/lib/auth/session");
+const { getSessionUser, getVerifiedUser, requireUser } = await import("@/lib/auth/session");
+const { enforceRateLimit } = await import("@/lib/data/rateLimits");
+const { HttpError } = await import("@/lib/http");
 const passkeys = await import("@/lib/data/passkeys");
 const { saveChallenge, takeChallenge } = await import("@/lib/data/webauthnChallenges");
 const registerOptions = (await import("./register/options/route")).POST;
@@ -244,6 +252,22 @@ describe("POST /api/passkeys/login/verify", () => {
   });
 });
 
+describe("passkey registration security", () => {
+  it("checks revocation before adding a passkey to an existing account", async () => {
+    vi.mocked(getSessionUser).mockResolvedValue(asha);
+    await registerOptions(post({}));
+    expect(getVerifiedUser).toHaveBeenCalled();
+  });
+
+  it("rate-limits anonymous sign-ups per IP (429)", async () => {
+    vi.mocked(enforceRateLimit).mockRejectedValueOnce(new HttpError(429, "slow down"));
+    const res = await registerOptions(post({ displayName: "Asha" }));
+    expect(res.status).toBe(429);
+    expect(enforceRateLimit).toHaveBeenCalledWith("passkey-signup:203.0.113.7", 20);
+    expect(saveChallenge).not.toHaveBeenCalled();
+  });
+});
+
 describe("DELETE /api/passkeys/[id]", () => {
   const remove = (id: string) =>
     removePasskey(new Request(`http://test/api/passkeys/${id}`, { method: "DELETE" }), { params: Promise.resolve({ id }) });
@@ -253,6 +277,14 @@ describe("DELETE /api/passkeys/[id]", () => {
     vi.mocked(passkeys.deletePasskey).mockResolvedValue(true);
     expect((await remove("cred1")).status).toBe(200);
     expect(passkeys.deletePasskey).toHaveBeenCalledWith("u-asha", "cred1");
+  });
+
+  it("refuses to remove the only passkey of an account with no Google sign-in (no lock-out)", async () => {
+    vi.mocked(requireUser).mockResolvedValue(asha);
+    vi.mocked(passkeys.listPasskeys).mockResolvedValueOnce([stored]);
+    getUserMock.mockResolvedValueOnce({ providerData: [] });
+    expect((await remove("cred1")).status).toBe(409);
+    expect(passkeys.deletePasskey).not.toHaveBeenCalled();
   });
 
   it("answers 404 for someone else's passkey", async () => {

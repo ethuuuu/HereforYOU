@@ -1,6 +1,6 @@
-import { useId, type InputHTMLAttributes } from "react";
+import { useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from "react";
 
-type FieldProps = InputHTMLAttributes<HTMLInputElement> & {
+type Described = {
   label: string;
   /** Shown under the label, e.g. "Like 8:00 AM". */
   hint?: string;
@@ -8,17 +8,25 @@ type FieldProps = InputHTMLAttributes<HTMLInputElement> & {
   error?: string;
 };
 
-/** Labelled text input. Hint and error are linked with aria-describedby. */
-export function Field({ label, hint, error, id, className = "", ...input }: FieldProps) {
+const CONTROL = "min-h-12 rounded-xl border-2 bg-bg px-4 py-2 text-lg";
+
+/** Label + hint + control + error, wired with aria-describedby / aria-invalid. */
+function Wrapper({
+  label,
+  hint,
+  error,
+  id,
+  control,
+}: Described & { id?: string; control: (a11y: { id: string; describedBy?: string; invalid?: true }) => ReactNode }) {
   const autoId = useId();
-  const inputId = id ?? autoId;
-  const hintId = hint ? `${inputId}-hint` : undefined;
-  const errorId = error ? `${inputId}-error` : undefined;
+  const controlId = id ?? autoId;
+  const hintId = hint ? `${controlId}-hint` : undefined;
+  const errorId = error ? `${controlId}-error` : undefined;
   const describedBy = [hintId, errorId].filter(Boolean).join(" ") || undefined;
 
   return (
     <div className="flex flex-col gap-2">
-      <label htmlFor={inputId} className="text-lg font-bold">
+      <label htmlFor={controlId} className="text-lg font-bold">
         {label}
       </label>
       {hint && (
@@ -26,13 +34,7 @@ export function Field({ label, hint, error, id, className = "", ...input }: Fiel
           {hint}
         </p>
       )}
-      <input
-        id={inputId}
-        aria-describedby={describedBy}
-        aria-invalid={error ? true : undefined}
-        className={`min-h-12 rounded-xl border-2 bg-bg px-4 py-2 text-lg ${error ? "border-danger" : "border-field"} ${className}`}
-        {...input}
-      />
+      {control({ id: controlId, describedBy, invalid: error ? true : undefined })}
       {error && (
         <p id={errorId} className="font-bold text-danger">
           <span aria-hidden="true">! </span>
@@ -40,5 +42,51 @@ export function Field({ label, hint, error, id, className = "", ...input }: Fiel
         </p>
       )}
     </div>
+  );
+}
+
+/** Labelled text input. */
+export function Field({ label, hint, error, id, className = "", ...input }: Described & InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <Wrapper
+      {...{ label, hint, error, id }}
+      control={(a) => (
+        <input
+          id={a.id}
+          aria-describedby={a.describedBy}
+          aria-invalid={a.invalid}
+          className={`${CONTROL} ${error ? "border-danger" : "border-field"} ${className}`}
+          {...input}
+        />
+      )}
+    />
+  );
+}
+
+/** Labelled select. */
+export function SelectField({
+  label,
+  hint,
+  error,
+  id,
+  className = "",
+  children,
+  ...select
+}: Described & SelectHTMLAttributes<HTMLSelectElement>) {
+  return (
+    <Wrapper
+      {...{ label, hint, error, id }}
+      control={(a) => (
+        <select
+          id={a.id}
+          aria-describedby={a.describedBy}
+          aria-invalid={a.invalid}
+          className={`${CONTROL} ${error ? "border-danger" : "border-field"} ${className}`}
+          {...select}
+        >
+          {children}
+        </select>
+      )}
+    />
   );
 }

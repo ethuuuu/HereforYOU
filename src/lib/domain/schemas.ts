@@ -104,6 +104,50 @@ export type Member = {
   joinedAt: string; // ISO
 };
 
+/* ---------- Circles ---------- */
+
+/** circles/{circleId}. Secrets (passcodeHash, claimCodeHash) never leave the server. */
+export type Circle = {
+  id: string;
+  code: string;
+  elderName: string;
+  elderEmail?: string;
+  timezone: string;
+  passcodeHash: string;
+  failedAttempts: number;
+  lastFailedAt?: string; // ISO
+  elderUid?: string; // set when the elder owns (created or claimed) the circle
+  organiserUid?: string;
+  claimCodeHash?: string;
+  claimExpiresAt?: string; // ISO
+  active: true;
+  createdAt: string;
+  createdBy: string;
+};
+
+/** circles/{id}/activity/{autoId} — every change, in plain words. */
+export type ActivityEntry = {
+  id: string;
+  actorUid: string;
+  actorName: string;
+  action: string; // e.g. "member.role_changed"
+  summary: string; // e.g. "Asha made Priya a caretaker"
+  at: string; // ISO
+};
+
+/** The elder takes over a circle a relative set up: circle code + one-time 6-digit claim code. */
+export const ClaimCircleSchema = z.object({
+  circleCode: CircleCodeSchema,
+  claimCode: z.string().trim().regex(/^\d{6}$/, "Enter the 6-digit code"),
+});
+export type ClaimCircleInput = z.infer<typeof ClaimCircleSchema>;
+
+/** Elder status only comes from creating or claiming a circle, never from a role change. */
+export const ASSIGNABLE_ROLES = ["caretaker", "doctor", "family"] as const;
+export const ChangeRoleSchema = z.object({ role: z.enum(ASSIGNABLE_ROLES) });
+
+export const RotatePasscodeSchema = z.object({ passcode: PasscodeSchema });
+
 /* ---------- Medications ---------- */
 
 export const MedicationInputSchema = z

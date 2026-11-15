@@ -69,8 +69,10 @@ export async function readJson<T>(req: Request, schema: ZodType<T>): Promise<T> 
 
 export type CircleContext = { user: SessionUser; member: Member; circleId: string };
 
-// Firestore ids we generate are URL-safe; anything else can't be a real circle.
-const CIRCLE_ID = /^[A-Za-z0-9_-]{1,64}$/;
+// Firestore auto-ids and Firebase uids are URL-safe; anything else can't be real (and
+// could escape the document path), so it's treated as "not found".
+const SAFE_ID = /^[A-Za-z0-9_-]{1,128}$/;
+export const isSafeId = (id: string) => SAFE_ID.test(id);
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
 export function withCircle(
@@ -87,7 +89,7 @@ export function withCircle(
     }
     const user = await requireUser();
     // Not a member and no such circle look the same, so circle ids can't be probed.
-    if (!CIRCLE_ID.test(circleId)) throw new NotFoundError("Care circle");
+    if (!isSafeId(circleId)) throw new NotFoundError("Care circle");
     const member = await getMember(circleId, user.uid);
     if (!member) throw new NotFoundError("Care circle");
     assertCan(member.role, action);

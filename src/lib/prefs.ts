@@ -35,6 +35,12 @@ export function prefsCookieString(prefs: DisplayPrefs): string {
   return `${PREFS_COOKIE}=${encodeURIComponent(serializePrefs(prefs))}; Path=/; Max-Age=31536000; SameSite=Lax`;
 }
 
+/** Browser only: the prefs saved on this device. */
+export function readPrefsInBrowser(): DisplayPrefs {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${PREFS_COOKIE}=([^;]*)`));
+  return parsePrefs(match?.[1]);
+}
+
 /** Browser only: save prefs and apply them to <html> right away. */
 export function applyPrefsInBrowser(prefs: DisplayPrefs): void {
   document.cookie = prefsCookieString(prefs);

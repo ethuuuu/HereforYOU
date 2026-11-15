@@ -2,7 +2,7 @@
  * Care-circle passcodes. Never stored in plain text: scrypt with a per-passcode
  * random salt, compared in constant time. Format: scrypt$N$r$p$saltB64$hashB64
  */
-import { randomBytes, scrypt as scryptCb, timingSafeEqual, type ScryptOptions } from "node:crypto";
+import { randomBytes, randomInt, scrypt as scryptCb, timingSafeEqual, type ScryptOptions } from "node:crypto";
 
 const N = 16384;
 const R = 8;
@@ -41,6 +41,16 @@ export const LOCKOUT_MINUTES = 15;
 export function isLockedOut(failedAttempts: number, lastFailedAt: Date | null, now: Date): boolean {
   if (failedAttempts < MAX_FAILED_ATTEMPTS || !lastFailedAt) return false;
   return now.getTime() - lastFailedAt.getTime() < LOCKOUT_MINUTES * 60_000;
+}
+
+/** Count after one more wrong try. A lockout that has run out starts a fresh count. */
+export function nextFailedAttempts(failedAttempts: number): number {
+  return (failedAttempts >= MAX_FAILED_ATTEMPTS ? 0 : failedAttempts) + 1;
+}
+
+/** One-time 6-digit code the elder enters to take over a circle a relative set up. */
+export function generateClaimCode(): string {
+  return randomInt(0, 1_000_000).toString().padStart(6, "0");
 }
 
 /** Short, unambiguous circle code like "HFY-7K3P9Q" (no 0/O/1/I). */

@@ -18,7 +18,8 @@ export function POST(req: Request) {
       });
     } catch (err) {
       if (!(err instanceof AIError)) throw err;
-      console.warn("[tts] speech failed"); // no text or details: may contain health info
+      // Gemini's error (status/model), never the spoken text, which may contain health info.
+      console.warn("[tts] speech failed:", err.message.slice(0, 300));
       return json({ error: "The voice isn't available right now." }, 502);
     }
   });

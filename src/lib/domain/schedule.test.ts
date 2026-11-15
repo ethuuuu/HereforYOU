@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { med, TZ } from "@/test/fixtures";
-import { daysOfSupplyLeft, dosesForDate, dosesForRange, isScheduledOn, makeDoseId } from "./schedule";
+import { daysOfSupplyLeft, dosesForDate, dosesForRange, isScheduledOn, makeDoseId, parseDoseId } from "./schedule";
 
 describe("dosesForDate", () => {
   it("expands each time into a dose, sorted, in the elder's zone", () => {
@@ -35,5 +35,19 @@ describe("helpers", () => {
   it("estimates days of supply", () => {
     expect(daysOfSupplyLeft(med({ pillsRemaining: 14 }))).toBe(7); // 2 pills/day
     expect(daysOfSupplyLeft(med({ pillsRemaining: undefined }))).toBeNull();
+  });
+});
+
+describe("parseDoseId", () => {
+  it("round-trips makeDoseId, even when the medicine id has underscores", () => {
+    expect(parseDoseId(makeDoseId("a_b-1", "2026-11-15", "08:30"))).toEqual({
+      medicationId: "a_b-1",
+      localDate: "2026-11-15",
+      localTime: "08:30",
+    });
+  });
+  it("rejects malformed ids", () => {
+    expect(parseDoseId("med1_2026-11-15")).toBeNull();
+    expect(parseDoseId("../x_2026-11-15_0800")).toBeNull();
   });
 });

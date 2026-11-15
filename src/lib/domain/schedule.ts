@@ -26,6 +26,12 @@ export function makeDoseId(medicationId: string, localDate: string, localTime: s
   return `${medicationId}_${localDate}_${localTime.replace(":", "")}`;
 }
 
+/** Inverse of makeDoseId, or null if malformed. Medication ids may contain "_", so match from the end. */
+export function parseDoseId(doseId: string): { medicationId: string; localDate: string; localTime: string } | null {
+  const m = /^([A-Za-z0-9_-]{1,128})_(\d{4}-\d{2}-\d{2})_(\d{2})(\d{2})$/.exec(doseId);
+  return m ? { medicationId: m[1], localDate: m[2], localTime: `${m[3]}:${m[4]}` } : null;
+}
+
 /** Is this medication scheduled at all on the given local date? */
 export function isScheduledOn(med: SchedulableMed, localDate: string): boolean {
   if (!med.active) return false;

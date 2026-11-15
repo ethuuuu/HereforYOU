@@ -41,12 +41,12 @@ Tick boxes as you go. Feature 3 complete + deployed = a valid submission; everyt
 - Done when: elder creates circle on one browser, family joins with code+passcode on another, elder upgrades them to caretaker, activity log shows each step.
 
 ## F3 · Medicines, Today view & adherence (≈1 h 15)
-- [ ] Medicines list + add/edit/deactivate form (`MedicationInputSchema`): name, dose, purpose, instructions, times (add/remove), days of week, start/end, pills remaining, prescribed by.
-- [ ] **Today** (`/c/[id]`, default for elder): doses for today in order, each a big card with state (Upcoming / Due now / ✓ Taken / Skipped / ! Missed), "I took it" and "Skip" buttons, read-aloud.
-- [ ] `POST /api/circles/[id]/doses` logs taken/skipped (doctor can't; family can confirm) → activity entry; decrement `pillsRemaining` on taken.
-- [ ] Adherence panel: this week's rate, streak, missed list (uses `summarizeAdherence`, `adherenceStreak`).
-- [ ] Refill badge when `daysOfSupplyLeft ≤ refillThreshold`.
-- [ ] Tests: dose logging route, today view interaction (mark taken updates UI).
+- [x] Medicines list + add/edit/deactivate form (`MedicationInputSchema`): name, dose, purpose, instructions, times (add/remove), days of week, start/end, pills remaining, prescribed by.
+- [x] **Today** (`/c/[id]`, default for elder): doses for today in order, each a big card with state (Upcoming / Due now / ✓ Taken / Skipped / ! Missed), "I took it" and "Skip" buttons, read-aloud.
+- [x] `POST /api/circles/[id]/doses` logs taken/skipped (doctor can't; family can confirm) → activity entry; decrement `pillsRemaining` on taken.
+- [x] Adherence panel: this week's rate, streak, missed list (uses `summarizeAdherence`, `adherenceStreak`).
+- [x] Refill badge when `daysOfSupplyLeft ≤ refillThreshold`.
+- [x] Tests: dose logging route, today view interaction (mark taken updates UI).
 - Done when: add a medicine for now+2 min, it appears on Today, "I took it" turns it ✓ and adherence updates.
 
 ## F4 · Appointments (≈45 min)

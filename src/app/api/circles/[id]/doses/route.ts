@@ -1,151 +1,32 @@
-import { logActivityIn } from "@/lib/data/activity";
-import { z } from "zod";
-import { localDateOf } from "@/lib/domain/time";
-import {
-  daysOfSupplyLeft,
-  type DoseInstance,
-  dosesForDate,
-} from "@/lib/domain/schedule";
-import { type Medication, type Member } from "@/lib/domain/schemas";
-import { db } from "@/lib/firebase/admin";
+import { getCircle } from "@/lib/data/circles";
+import { logDose } from "@/lib/data/doseLogs";
+import { getMedication } from "@/lib/data/medications";
+import { dosesForDate, parseDoseId } from "@/lib/domain/schedule";
 import { LogDoseSchema } from "@/lib/domain/schemas";
-import { handle, HttpError, json, readJson, withCircle } from "@/lib/http";
-import type { DoseLog } from "@/lib/domain/schemas";
-import type { Circle } from "@/lib/domain/schemas";
+import { addDays, localDateOf } from "@/lib/domain/time";
+import { HttpError, json, NotFoundError, readJson, withCircle } from "@/lib/http";
 
-export type DoseLogInput = {
-  status: "taken" | "skipped";
-  note?: string;
-};
+/** POST /api/circles/[id]/doses — mark one scheduled dose (today or yesterday) as taken or skipped. */
+export async function POST(req: Request, ctx: RouteContext<"/api/circles/[id]/doses">) {
+  const { id } = await ctx.params;
+  return withCircle(req, id, "doses.log", async ({ member }) => {
+    const { doseId, status, note } = await readJson(req, LogDoseSchema);
+    const parsed = parseDoseId(doseId);
+    if (!parsed) throw new NotFoundError("That dose");
 
-/** POST /api/circles/[id]/doses — log a taken/skipped dose */
-export async function POST(req: Request, context: { params: Promise<{ id: string }> }) {
-  const circleId = (await context.params).id;
+    const [circle, med] = await Promise.all([getCircle(id), getMedication(id, parsed.medicationId)]);
+    if (!circle) throw new NotFoundError("Care circle");
+    if (!med) throw new NotFoundError("That medicine");
 
-  return withCircle(req, circleId, "doses.log", async ({ user, member }) => {
-    // Fetch the full circle data
-    const circleSnap = await db().collection("circles").doc(circleId).get();
-    const circle = circleSnap.data() as Circle | undefined;
-    if (!circle) throw new HttpError(404, "Care circle not found");
-
-    const input = await readJson<DoseLogInput>(req, LogDoseSchema);
-    const { status, note } = input;
-    const now = new Date();
-    const localToday = localDateOf(now, circle.timezone);
-
-    // Fetch active medications for this circle
-    const medSnap = await db()
-      .collection("circles")
-      .doc(circleId)
-      .collection("medications")
-      .where("active", "==", true)
-      .get();
-
-    const rawMeds = medSnap.docs.map((d) => ({
-      id: d.id,
-      ...(d.data() as Record<string, unknown>),
-    }));
-
-    // Medications from Firestore
-    const medications: any[] = medSnap.docs.map((d) => ({
-      id: d.id,
-      ...(d.data() as Record<string, unknown>),
-    }));
-
-    // Get doses for today from each medication
-    const dosesToday: DoseInstance[] = [];
-    for (const med of medications) {
-      if (!med.active) continue;
-      const medSched = {
-        id: med.id,
-        name: med.name,
-        dose: med.dose,
-        instructions: med.instructions,
-        times: med.times,
-        daysOfWeek: med.daysOfWeek,
-        startDate: med.startDate,
-        endDate: med.endDate,
-        active: med.active,
-      } as const;
-      const ds = dosesForDate([medSched], localToday, circle.timezone);
-      dosesToday.push(...ds);
+    const today = localDateOf(new Date(), circle.timezone);
+    if (parsed.localDate !== today && parsed.localDate !== addDays(today, -1)) {
+      throw new HttpError(400, "You can only update doses from today or yesterday.");
     }
+    // The id must be a dose this medicine really has on that day.
+    const dose = dosesForDate([med], parsed.localDate, circle.timezone).find((d) => d.doseId === doseId);
+    if (!dose) throw new NotFoundError("That dose");
 
-    if (dosesToday.length === 0) {
-      return json({ error: "No doses scheduled for today in this time zone." }, 400);
-    }
-
-    // Use the first dose scheduled for today
-    const dose = dosesToday[0];
-    const doseId = dose.doseId;
-
-    // Build the dose log entry
-    // Member.id is the Firebase Auth uid
-    const log: DoseLog = {
-      doseId,
-      medicationId: dose.medicationId,
-      localDate: localToday,
-      status,
-      loggedBy: member.id,
-      loggedAt: now.toISOString(),
-      ...(note && { note }),
-    };
-
-    // Transaction: log the dose + update pillsRemaining + activity entry
-    await db().runTransaction(async (tx) => {
-      // Create dose log
-      tx.create(
-        db()
-          .collection("circles")
-          .doc(circleId)
-          .collection("doseLogs")
-          .doc(doseId),
-        log,
-      );
-
-      // If taken, decrement pillsRemaining on the medication
-      if (status === "taken") {
-        const medDoc = db()
-          .collection("circles")
-          .doc(circleId)
-          .collection("medications")
-          .doc(dose.medicationId);
-        const medSnap = await tx.get(medDoc);
-        const medData = medSnap.data() as {
-          pillsRemaining?: number;
-          updatedAt?: string;
-        } | undefined;
-        if (medData?.pillsRemaining !== undefined) {
-          tx.update(medDoc, {
-            pillsRemaining: medData.pillsRemaining - 1,
-            updatedAt: now.toISOString(),
-          });
-        }
-      }
-
-      // Activity entry
-      // Member has 'id' (Firebase uid) and 'name' from schemas
-      const actorUid = member.id;
-      const actorName = member.name;
-      logActivityIn(tx, circleId, {
-        actorUid,
-        actorName,
-        action: "dose." + status,
-        summary: status === "taken"
-          ? `${actorName} took ${dose.medicationName}`
-          : `${actorName} skipped ${dose.medicationName}`,
-      });
-    });
-
-    // Return updated pillsRemaining (read from medication doc after tx)
-    const finalMedDoc = await db()
-      .collection("circles")
-      .doc(circleId)
-      .collection("medications")
-      .doc(dose.medicationId)
-      .get();
-    const finalPills = finalMedDoc.data() as { pillsRemaining?: number } | {};
-    const pillsRemaining = "pillsRemaining" in finalPills ? finalPills.pillsRemaining : undefined;
-    return json({ ok: true, doseId, pillsRemaining: pillsRemaining ?? 0 });
+    const { pillsRemaining } = await logDose(id, member, dose, status, note);
+    return json({ ok: true, doseId, status, pillsRemaining: pillsRemaining ?? null });
   });
 }

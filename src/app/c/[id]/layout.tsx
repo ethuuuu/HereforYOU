@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { requireCircleMember } from "@/lib/auth/page";
 
 /** Shared shell for all /c/[id]/* pages. Loads member + circle, provides nav. */
 export default async function CircleLayout({ children, params }: LayoutProps<"/c/[id]">) {
   const { id } = await params;
-  const { circle, member } = await requireCircleMember(id).catch(() => notFound());
+  // requireCircleMember already redirects (signed out) or 404s (not a member).
+  const { circle, member } = await requireCircleMember(id);
 
   const NAV_LINKS = [
     { href: `/c/${id}`, label: "Today" },

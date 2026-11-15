@@ -118,6 +118,16 @@ data calls `assertCan(role, action)` after confirming membership.** People who j
 with the passcode start as `family`; only the elder (or organiser before claim) can
 upgrade them. Nobody can demote or remove the elder.
 
+**Who may add medicines** (`members/{uid}.medsAuthorized`, rule in `canEditMedicines`):
+the role must allow `medications.edit` **and** the member must be allowed. The circle's
+creator is allowed at creation; doctors are always allowed (set whenever someone becomes
+a doctor, cleared when they stop); when the elder claims a circle both the elder and the
+creator are allowed. Everyone else starts not allowed. Only the creator or the elder can
+switch it (`PUT /api/circles/[id]/members/[uid]/medicines`, rule in `canSetMedsAuthorized`);
+doctors, the creator and the elder can't be switched off. `withCircle` enforces it for
+every `medications.edit` route. Members saved before the flag existed fall back to their
+role: elder/organiser/doctor allowed, others not.
+
 ## 7. Firestore data model
 
 All timestamps are ISO-8601 strings in UTC. Local dates/times (`YYYY-MM-DD`, `HH:MM`)

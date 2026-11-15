@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { Toast } from "@/components/ui/Toast";
 import { sendJson } from "@/lib/api-client";
-import { ASSIGNABLE_ROLES, type CircleRole, type Member } from "@/lib/domain/schemas";
+import { canEditMedicines, canSetMedsAuthorized } from "@/lib/auth/permissions";
+import { ASSIGNABLE_ROLES, type Circle, type CircleRole, type Member } from "@/lib/domain/schemas";
 
 const ROLE_LABELS: Record<CircleRole, string> = {
   elder: "Elder",
@@ -37,10 +38,12 @@ type Props = {
   circleId: string;
   members: Member[];
   myRole: CircleRole;
+  myId: string;
   hasElder: boolean;
+  owners: Pick<Circle, "createdBy" | "elderUid">;
 };
 
-export function MembersManager({ circleId, members: initial, myRole, hasElder }: Props) {
+export function MembersManager({ circleId, members: initial, myRole, myId, hasElder, owners }: Props) {
   const [members, setMembers] = useState(initial);
   const [toast, setToast] = useState<{ message: string; tone: "success" | "error" } | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -56,8 +59,27 @@ export function MembersManager({ circleId, members: initial, myRole, hasElder }:
       setToast({ message: res.error, tone: "error" });
       return;
     }
-    setMembers((prev) => prev.map((m) => (m.id === uid ? { ...m, role } : m)));
+    // Mirrors the server: becoming a doctor allows medicines; leaving doctor stops it (except the creator).
+    const meds = (m: Member) =>
+      role === "doctor" ? true : m.role === "doctor" && m.id !== owners.createdBy ? false : m.medsAuthorized;
+    setMembers((prev) => prev.map((m) => (m.id === uid ? { ...m, role, medsAuthorized: meds(m) } : m)));
     setToast({ message: "Role updated.", tone: "success" });
+  }
+
+  async function setMeds(m: Member, allowed: boolean) {
+    setBusy(m.id);
+    setToast(null);
+    const res = await sendJson(`/api/circles/${circleId}/members/${m.id}/medicines`, "PUT", { medsAuthorized: allowed });
+    setBusy(null);
+    if (!res.ok) {
+      setToast({ message: res.error, tone: "error" });
+      return;
+    }
+    setMembers((prev) => prev.map((x) => (x.id === m.id ? { ...x, medsAuthorized: allowed } : x)));
+    setToast({
+      message: allowed ? `${m.name} can now add and edit medicines.` : `${m.name} can no longer add or edit medicines.`,
+      tone: "success",
+    });
   }
 
   async function removeMember(uid: string, name: string) {
@@ -86,8 +108,37 @@ export function MembersManager({ circleId, members: initial, myRole, hasElder }:
                 <span className="text-xl font-bold">{m.name}</span>
                 {canManage && m.email && <span className="text-muted">{m.email}</span>}
               </div>
-              <RoleBadge role={m.role} />
+              <div className="flex flex-wrap items-center gap-2">
+                <RoleBadge role={m.role} />
+                {canEditMedicines(m) && (
+                  <span className="inline-flex items-center rounded-md border-2 border-line bg-bg px-3 py-1 text-sm font-bold">
+                    <span aria-hidden="true">✓&nbsp;</span>Can add medicines
+                  </span>
+                )}
+              </div>
             </div>
+
+            {m.role === "doctor" && <p className="mt-3 text-muted">Doctor — always allowed to add medicines.</p>}
+
+            {canSetMedsAuthorized(owners, myId, m) && (
+              <button
+                type="button"
+                role="switch"
+                aria-checked={canEditMedicines(m)}
+                aria-label={`Can add and edit medicines: ${m.name}`}
+                disabled={busy === m.id}
+                onClick={() => setMeds(m, !canEditMedicines(m))}
+                className="mt-4 flex min-h-(--tap) w-full items-center justify-between gap-4 rounded-lg border-2 border-field bg-bg px-4 py-2 text-left text-base font-bold sm:w-auto"
+              >
+                <span>Can add and edit medicines</span>
+                <span
+                  aria-hidden="true"
+                  className={`rounded-md px-3 py-1 text-sm ${canEditMedicines(m) ? "bg-primary text-on-primary" : "border-2 border-line text-muted"}`}
+                >
+                  {canEditMedicines(m) ? "On" : "Off"}
+                </span>
+              </button>
+            )}
 
             {canManage && m.role !== "elder" && (
               <div className="mt-4 flex flex-wrap gap-3" role="group" aria-label={`Actions for ${m.name}`}>

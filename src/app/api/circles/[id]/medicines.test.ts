@@ -128,6 +128,24 @@ describe("medicines routes", () => {
     expect(res.status).toBe(403);
   });
 
+  it("forbids a caretaker the owner hasn't allowed from adding, editing or stopping medicines (403)", async () => {
+    vi.mocked(getMember).mockResolvedValue(member("caretaker"));
+    const res = await medPost(req("POST", validMed), ctx);
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({ error: "Only people the circle owner has allowed can add or change medicines." });
+    expect((await medPatch(req("PATCH", validMed), medCtx)).status).toBe(403);
+    expect((await medDelete(req("DELETE"), medCtx)).status).toBe(403);
+    expect(createMedication).not.toHaveBeenCalled();
+    expect(updateMedication).not.toHaveBeenCalled();
+    expect(stopMedication).not.toHaveBeenCalled();
+  });
+
+  it("lets an allowed caretaker add medicines", async () => {
+    vi.mocked(getMember).mockResolvedValue(member("caretaker", { medsAuthorized: true }));
+    vi.mocked(createMedication).mockResolvedValue("m9");
+    expect((await medPost(req("POST", validMed), ctx)).status).toBe(201);
+  });
+
   it("edits and stops a medicine", async () => {
     vi.mocked(updateMedication).mockResolvedValue(true);
     vi.mocked(stopMedication).mockResolvedValue(true);

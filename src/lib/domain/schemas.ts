@@ -102,6 +102,8 @@ export type Member = {
   role: CircleRole;
   notify: NotifyPrefs;
   joinedAt: string; // ISO
+  /** May add/edit medicines. Creator, elder and doctors always; others when the owner allows. See canEditMedicines. */
+  medsAuthorized?: boolean;
 };
 
 /* ---------- Circles ---------- */
@@ -145,6 +147,7 @@ export type ClaimCircleInput = z.infer<typeof ClaimCircleSchema>;
 /** Elder status only comes from creating or claiming a circle, never from a role change. */
 export const ASSIGNABLE_ROLES = ["caretaker", "doctor", "family"] as const;
 export const ChangeRoleSchema = z.object({ role: z.enum(ASSIGNABLE_ROLES) });
+export const MedsAuthorizedSchema = z.object({ medsAuthorized: z.boolean() });
 
 export const RotatePasscodeSchema = z.object({ passcode: PasscodeSchema });
 

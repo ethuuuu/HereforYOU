@@ -80,6 +80,7 @@ export async function createCircle(user: SessionUser, input: CreateProfileInput,
       role,
       notify: defaultNotifyPrefs(role),
       joinedAt: now.toISOString(),
+      medsAuthorized: true, // the creator decides who else may add medicines
     };
     tx.create(circleCodeRef(code), { circleId: ref.id });
     tx.create(ref, circle);
@@ -111,7 +112,7 @@ export type ClaimResult = "ok" | "invalid" | "locked" | "already_claimed" | "is_
 
 /**
  * The elder takes over a circle a relative set up. They become `elder`; the
- * organiser becomes `caretaker`. Wrong codes count towards the circle's lockout.
+ * organiser becomes `caretaker` (both may add medicines). Wrong codes count towards the circle's lockout.
  */
 export async function claimCircle(
   user: SessionUser,
@@ -152,9 +153,10 @@ export async function claimCircle(
       role: "elder",
       notify: defaultNotifyPrefs("elder"),
       joinedAt: now.toISOString(),
+      medsAuthorized: true,
     };
     tx.set(memberRef(circleId, user.uid), elder);
-    if (organiser) tx.update(memberRef(circleId, c.organiserUid!), { role: "caretaker" });
+    if (organiser) tx.update(memberRef(circleId, c.organiserUid!), { role: "caretaker", medsAuthorized: true });
     tx.set(userRef(user.uid), { setupRole: "elder", circleIds: FieldValue.arrayUnion(circleId) }, { merge: true });
     logActivityIn(tx, circleId, {
       actorUid: user.uid,

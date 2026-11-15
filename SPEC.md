@@ -37,6 +37,7 @@ Tick boxes as you go. Feature 3 complete + deployed = a valid submission; everyt
 - [ ] Members page: list, role badges; elder can change roles / remove (rules in `canChangeRole`), rotate passcode, edit notification prefs.
 - [ ] Share card: circle code + "how to join" text (passcode never shown again after creation).
 - [ ] Activity log page (`activity` collection), newest first.
+- [x] Medicines permission: only the circle creator (and the elder after claim) may add medicines until they allow others with the "Can add and edit medicines" switch on People; doctors are always allowed (AGENTS.md §6). Enforced in `withCircle` + medicines pages; tests.
 - [ ] Tests: create/join/lockout/claim/role-change routes; permission denials.
 - Done when: elder creates circle on one browser, family joins with code+passcode on another, elder upgrades them to caretaker, activity log shows each step.
 

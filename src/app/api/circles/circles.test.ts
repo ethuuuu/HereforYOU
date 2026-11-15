@@ -26,6 +26,7 @@ vi.mock("@/lib/data/membership", () => ({
   joinCircle: vi.fn(),
   changeRole: vi.fn(),
   removeMember: vi.fn(),
+  setMedsAuthorized: vi.fn(),
 }));
 
 vi.mock("@/lib/data/members", () => ({
@@ -36,7 +37,7 @@ vi.mock("@/lib/data/members", () => ({
 
 const { requireUser } = await import("@/lib/auth/session");
 const { createCircle } = await import("@/lib/data/circles");
-const { joinCircle, changeRole, removeMember } = await import("@/lib/data/membership");
+const { joinCircle, changeRole, removeMember, setMedsAuthorized } = await import("@/lib/data/membership");
 const { getMember } = await import("@/lib/data/members");
 const { claimCircle, getCircle, rotatePasscode } = await import("@/lib/data/circles");
 
@@ -46,6 +47,7 @@ const { POST: claimPost } = await import("@/app/api/circles/claim/route");
 const { PATCH: memberPatch, DELETE: memberDelete } = await import(
   "@/app/api/circles/[id]/members/[uid]/route"
 );
+const { PUT: medsPut } = await import("@/app/api/circles/[id]/members/[uid]/medicines/route");
 const { PUT: passcodePut } = await import("@/app/api/circles/[id]/passcode/route");
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -331,6 +333,36 @@ describe("PATCH /api/circles/[id]/members/[uid]", () => {
       memberCtx("c1", "u-family"),
     );
     expect(res.status).toBe(400);
+  });
+});
+
+// ── PUT /api/circles/[id]/members/[uid]/medicines ─────────────────────────
+
+describe("PUT /api/circles/[id]/members/[uid]/medicines", () => {
+  const ctx: RouteContext<"/api/circles/[id]/members/[uid]/medicines"> = { params: Promise.resolve({ id: "c1", uid: "u-caretaker" }) };
+  const put = (body: unknown) => medsPut(json("http://test/api", "PUT", body), ctx);
+  beforeEach(() => vi.mocked(getMember).mockResolvedValue(member("elder", { name: "Asha" })));
+
+  it("allows a member to add medicines", async () => {
+    vi.mocked(setMedsAuthorized).mockResolvedValue("ok");
+    const res = await put({ medsAuthorized: true });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: true, medsAuthorized: true });
+    expect(setMedsAuthorized).toHaveBeenCalledWith("c1", member("elder", { name: "Asha" }), "u-caretaker", true);
+  });
+
+  it("returns 403 with a plain reason when the data layer refuses (not the owner, or a doctor/owner target)", async () => {
+    vi.mocked(getMember).mockResolvedValue(member("caretaker"));
+    vi.mocked(setMedsAuthorized).mockResolvedValue("forbidden");
+    const res = await put({ medsAuthorized: true });
+    expect(res.status).toBe(403);
+    expect((await res.json()).error).toMatch(/Only the person who set up the circle, or the elder/);
+  });
+
+  it("returns 404 for an unknown member and 400 for a bad body", async () => {
+    vi.mocked(setMedsAuthorized).mockResolvedValue("not_found");
+    expect((await put({ medsAuthorized: false })).status).toBe(404);
+    expect((await put({ medsAuthorized: "yes" })).status).toBe(400);
   });
 });
 

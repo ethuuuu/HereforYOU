@@ -59,6 +59,23 @@ describe("withCircle", () => {
     expect(ok).not.toHaveBeenCalled();
   });
 
+  it("denies medicine edits to a caretaker the circle owner hasn't allowed", async () => {
+    vi.mocked(getMember).mockResolvedValue(member("caretaker"));
+    const res = await withCircle(get(), "c1", "medications.edit", ok);
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({ error: "Only people the circle owner has allowed can add or change medicines." });
+    expect(ok).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["the creator", member("organiser", { medsAuthorized: true })],
+    ["a doctor", member("doctor")],
+    ["an allowed caretaker", member("caretaker", { medsAuthorized: true })],
+  ])("allows medicine edits by %s", async (_, m) => {
+    vi.mocked(getMember).mockResolvedValue(m);
+    expect((await withCircle(get(), "c1", "medications.edit", ok)).status).toBe(200);
+  });
+
   it("returns 400 with field messages when the handler's input fails validation", async () => {
     const schema = z.object({ name: z.string().min(1, "Enter the medicine name") });
     const req = post(JSON.stringify({ name: "" }));

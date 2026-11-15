@@ -8,9 +8,9 @@ const isDev = process.env.NODE_ENV === "development";
 const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://apis.google.com https://www.gstatic.com`,
-  "style-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' data: blob: https://lh3.googleusercontent.com",
-  "font-src 'self'",
+  "font-src 'self' https://fonts.gstatic.com",
   "connect-src 'self' https://*.googleapis.com https://apis.google.com",
   "frame-src https://*.firebaseapp.com https://*.web.app https://accounts.google.com",
   "object-src 'none'",
@@ -30,8 +30,8 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  cacheComponents: true,
-  partialPrefetching: true,
+  // No cacheComponents/partialPrefetching: the root layout reads a cookie, which left the
+  // prerendered shell empty and Vercel served it as a blank page. Every page is per-user anyway.
   poweredByHeader: false,
   turbopack: {
     rules: {

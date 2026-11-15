@@ -8,10 +8,6 @@ import "./globals.css";
 // Atkinson Hyperlegible: designed by the Braille Institute for low-vision readers. Self-hosted at build.
 const atkinson = Atkinson_Hyperlegible({ weight: ["400", "700"], subsets: ["latin"], variable: "--font-atkinson" });
 
-// The root reads the display-prefs cookie so <html> has the right classes before
-// first paint (no flash, no inline script). It's a tiny cookie read, so blocking is fine.
-export const instant = false;
-
 export const metadata: Metadata = {
   title: { default: "Here For YOU", template: "%s · Here For YOU" },
   description:
@@ -21,6 +17,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { themeColor: "#0b5394" };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // Display prefs from a cookie so <html> has the right classes before first paint (no flash).
   const prefs = parsePrefs((await cookies()).get(PREFS_COOKIE)?.value);
 
   return (

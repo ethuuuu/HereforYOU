@@ -9,7 +9,7 @@ import { ReadAloud } from "@/components/ui/ReadAloud";
 import { Toast } from "@/components/ui/Toast";
 import type { MedicationDraft, PrescriptionDraft } from "@/lib/ai/prompts";
 import { sendJson } from "@/lib/api-client";
-import { photoProblem, photoToUpload } from "@/lib/image";
+import { PhotoTooLargeError, photoProblem, photoToUpload } from "@/lib/image";
 
 export const AI_NOTICE = "Suggestion only — check with your doctor or pharmacist.";
 
@@ -43,8 +43,8 @@ export function PrescriptionImport({ circleId, today }: { circleId: string; toda
       if (!res.ok) return setError(res.error);
       setDrafts(res.data.draft.medications.map((m, key) => ({ ...m, key, selected: true })));
       setUncertain(res.data.draft.uncertain);
-    } catch {
-      setError("We couldn't open that photo. Please try another one.");
+    } catch (err) {
+      setError(err instanceof PhotoTooLargeError ? err.message : "We couldn't open that photo. Please try another one.");
     } finally {
       setReading(false);
     }
@@ -90,8 +90,8 @@ export function PrescriptionImport({ circleId, today }: { circleId: string; toda
           </label>
           <textarea id={textId} name="text" rows={6} maxLength={4000} className="rounded-lg border-2 border-field bg-bg px-4 py-2 text-lg" />
         </div>
-        <Field label="Or add a photo of it" hint="JPEG, PNG or WebP, up to 4 MB." type="file" name="photo" accept="image/jpeg,image/png,image/webp" />
-        <Button type="submit" loading={reading} loadingText="Reading your prescription…">
+        <Field label="Or add a photo of it" hint="JPEG, PNG or WebP. We shrink it before sending, so phone photos are fine." type="file" name="photo" accept="image/jpeg,image/png,image/webp" />
+        <Button type="submit" loading={reading} loadingText="Reading your prescription… usually a few seconds">
           {error && !drafts ? "Try again" : "Read my prescription"}
         </Button>
       </form>

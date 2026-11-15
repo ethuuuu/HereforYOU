@@ -4,8 +4,8 @@
  * model id from Google AI Studio).
  */
 import "server-only";
-import { GoogleGenAI, Modality } from "@google/genai";
-import type { z } from "zod";
+import { GoogleGenAI, Modality, ThinkingLevel } from "@google/genai";
+import { z } from "zod";
 import { pcmToWav, sampleRateOf } from "@/lib/audio";
 import { serverEnv } from "@/lib/env";
 import { jsonInstruction, parseModelJSON } from "./json";
@@ -25,12 +25,29 @@ type GenerateOptions = {
   images?: ImageInput[];
   maxOutputTokens?: number;
   json?: boolean;
+  /** JSON Schema the model must follow (Gemini structured output). */
+  jsonSchema?: unknown;
+  /** Skip "thinking" for simple extraction: much faster first token. */
+  minimalThinking?: boolean;
 };
 
 let client: GoogleGenAI | null = null;
 function gemini(): GoogleGenAI {
-  client ??= new GoogleGenAI({ apiKey: serverEnv().GEMINI_API_KEY });
+  // SDK v3 defaults to the stable "v1" API, which rejects speechConfig, responseJsonSchema and
+  // thinkingConfig ("Unknown name … Cannot find field"). All three live in v1beta.
+  client ??= new GoogleGenAI({ apiKey: serverEnv().GEMINI_API_KEY, apiVersion: "v1beta" });
   return client;
+}
+
+/** zod → JSON Schema for Gemini's responseJsonSchema, or undefined if the schema can't be expressed. */
+export function toGeminiSchema(schema: z.ZodType): Record<string, unknown> | undefined {
+  try {
+    const js = z.toJSONSchema(schema, { unrepresentable: "any" }) as Record<string, unknown>;
+    delete js.$schema; // Gemini's schema parser doesn't accept the meta-schema URL
+    return js;
+  } catch {
+    return undefined;
+  }
 }
 
 export async function generateText(opts: GenerateOptions): Promise<string> {
@@ -38,8 +55,8 @@ export async function generateText(opts: GenerateOptions): Promise<string> {
     ...(opts.images ?? []).map((img) => ({ inlineData: { mimeType: img.mimeType, data: img.base64 } })),
     { text: opts.prompt },
   ];
-  try {
-    const res = await gemini().models.generateContent({
+  const call = (thinking: boolean) =>
+    gemini().models.generateContent({
       model: serverEnv().GEMINI_MODEL,
       contents: [{ role: "user", parts }],
       config: {
@@ -47,8 +64,19 @@ export async function generateText(opts: GenerateOptions): Promise<string> {
         maxOutputTokens: opts.maxOutputTokens ?? 1024,
         temperature: 0.2,
         ...(opts.json ? { responseMimeType: "application/json" } : {}),
+        ...(opts.jsonSchema ? { responseJsonSchema: opts.jsonSchema } : {}),
+        ...(thinking ? { thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL } } : {}),
       },
     });
+  try {
+    let res;
+    try {
+      res = await call(Boolean(opts.minimalThinking));
+    } catch (err) {
+      // Older models take a thinking budget instead of a level: retry once with the model's default.
+      if (!opts.minimalThinking || !/thinking/i.test(String(err))) throw err;
+      res = await call(false);
+    }
     return res.text ?? "";
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -82,9 +110,12 @@ export async function generateSpeech(text: string): Promise<Buffer> {
 }
 
 /** Structured output validated with zod; retries once with the validation error. */
-export async function generateJSON<T>(schema: z.ZodType<T>, opts: Omit<GenerateOptions, "json">): Promise<T> {
+export async function generateJSON<T>(schema: z.ZodType<T>, opts: Omit<GenerateOptions, "json" | "jsonSchema">): Promise<T> {
   const system = `${opts.system}\n\n${jsonInstruction(schema)}`;
-  const first = parseModelJSON(schema, await generateText({ ...opts, system, json: true }));
+  // Structured output: Gemini follows the schema, so the first answer is almost always valid.
+  // zod still validates it, and one corrective retry remains as a fallback.
+  const jsonSchema = toGeminiSchema(schema);
+  const first = parseModelJSON(schema, await generateText({ ...opts, system, json: true, jsonSchema }));
   if (first.ok) return first.data;
   const retry = parseModelJSON(
     schema,
@@ -92,6 +123,7 @@ export async function generateJSON<T>(schema: z.ZodType<T>, opts: Omit<GenerateO
       ...opts,
       system,
       json: true,
+      jsonSchema,
       prompt: `${opts.prompt}\n\nYour previous answer was invalid: ${first.error}\nReturn corrected JSON only.`,
     }),
   );

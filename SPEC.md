@@ -77,6 +77,13 @@ Tick boxes as you go. Feature 3 complete + deployed = a valid submission; everyt
 - [ ] Family home: "Is Mum OK today?" summary card (adherence today + next appointment).
 - [ ] Stretch: weekly Gemini summary email; high-contrast theme polish; empty states everywhere.
 
+## F8 · Assistant (chat + voice + tool calling)
+- [x] `/c/[id]/assistant` (nav "Assistant" + "Ask the assistant" on Today): chat log (`aria-live`), text box + Send, **Speak** (MediaRecorder → Gemini transcription), replies read aloud (Gemini TTS) with the AI notice.
+- [x] `POST /api/circles/[id]/assistant` (`ai.use`): Gemini function calling via `chatWithTools`. Read tools run at once: `get_today_doses`, `get_medicines`, `get_upcoming_visits`, `get_people`. Action tools only return a **pending** action: `log_dose`, `schedule_visit` (+ Google Calendar link), `create_task` (`circles/{id}/tasks`, shown on Today), `send_email` (Gmail; recipients by name/role, mapped server-side).
+- [x] Confirm: `{ confirm: { tool, args } }` → zod re-validation + the tool's own permission → execute → activity entry.
+- [x] `POST /api/circles/[id]/assistant/transcribe`: webm/ogg/mp4/mp3/wav, ≤ 2 MB, base64 JSON.
+- [x] Tests: helper (SDK mocked), routes (pending not executed, confirm + 403/400, email mapping + escaping, transcribe limits), chat UI.
+
 ## Ship (from 3:30)
 - [ ] `/ship` command: lint, typecheck, tests, build, security + accessibility pass.
 - [ ] README rewritten (problem → solution → features → Google services → architecture → setup → tests).

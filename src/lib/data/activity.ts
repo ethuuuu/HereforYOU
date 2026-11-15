@@ -10,6 +10,11 @@ export function logActivityIn(tx: Transaction | WriteBatch, circleId: string, en
   tx.create(activityCol(circleId).doc(), { ...entry, at: new Date().toISOString() });
 }
 
+/** A standalone entry, for actions with no other Firestore write (e.g. an email sent). */
+export async function logActivity(circleId: string, entry: NewActivity): Promise<void> {
+  await activityCol(circleId).add({ ...entry, at: new Date().toISOString() });
+}
+
 /** Newest first. One query, capped. */
 export async function listActivity(circleId: string, limit = 50): Promise<ActivityEntry[]> {
   const snap = await activityCol(circleId).orderBy("at", "desc").limit(limit).get();

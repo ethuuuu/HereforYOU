@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export type NavIcon = "today" | "medicines" | "visits" | "people" | "activity";
+export type NavIcon = "today" | "medicines" | "visits" | "people" | "activity" | "assistant";
 export type NavLink = { href: string; label: string; icon: NavIcon; phone: boolean };
 
 // Simple line icons (no icon library needed); always shown with a text label.
@@ -13,6 +13,7 @@ const PATHS: Record<NavIcon, string> = {
   visits: "M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5",
   people: "M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21v-1a6 6 0 0 1 12 0v1M16 3.5a4 4 0 0 1 0 7.5M22 21v-1a6 6 0 0 0-4-5.6",
   activity: "M4 4h16v16H4zM8 9h8M8 13h8M8 17h5",
+  assistant: "M4 5h16v11H9l-5 4zM8 10h.01M12 10h.01M16 10h.01",
 };
 
 function Icon({ name }: { name: NavIcon }) {

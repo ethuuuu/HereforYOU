@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AppointmentCard } from "@/components/appointments/AppointmentCard";
 import { DoseList, type TodayDose } from "@/components/today/DoseList";
+import { buttonClass } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ReadAloud } from "@/components/ui/ReadAloud";
 import { requireCircleMember } from "@/lib/auth/page";
@@ -9,13 +10,14 @@ import { can } from "@/lib/auth/permissions";
 import { nextAppointment } from "@/lib/data/appointments";
 import { listDoseLogs } from "@/lib/data/doseLogs";
 import { listActiveMedications } from "@/lib/data/medications";
+import { listTasksForDate } from "@/lib/data/tasks";
 import { adherenceStreak, doseState, summarizeAdherence } from "@/lib/domain/adherence";
 import { daysOfSupplyLeft, dosesForRange, type DoseInstance } from "@/lib/domain/schedule";
-import { addDays, formatLocalDate, formatLocalTime, localDateOf } from "@/lib/domain/time";
+import { addDays, formatLocalDate, formatLocalTime, localDateOf, zonedToUtc } from "@/lib/domain/time";
 
 export const metadata: Metadata = { title: "Today" };
 
-/** Today: this day's doses, the week's adherence, missed doses, refill warnings and the next visit. 3 queries. */
+/** Today: this day's doses, the week's adherence, missed doses, refill warnings and the next visit and to-dos. 4 queries. */
 export default async function CircleHomePage({ params }: PageProps<"/c/[id]">) {
   const { id } = await params;
   const { circle, member } = await requireCircleMember(id);
@@ -24,10 +26,11 @@ export default async function CircleHomePage({ params }: PageProps<"/c/[id]">) {
   const today = localDateOf(now, tz);
   const weekStart = addDays(today, -6);
 
-  const [meds, logs, nextVisit] = await Promise.all([
+  const [meds, logs, nextVisit, tasks] = await Promise.all([
     listActiveMedications(id),
     listDoseLogs(id, weekStart, today),
     nextAppointment(id, now),
+    listTasksForDate(id, today),
   ]);
   const logById = new Map(logs.map((l) => [l.doseId, l]));
   const weekDoses = dosesForRange(meds, weekStart, today, tz);
@@ -68,7 +71,30 @@ export default async function CircleHomePage({ params }: PageProps<"/c/[id]">) {
           <ReadAloud text={spoken} />
         </div>
         <DoseList circleId={id} doses={todayDoses} canLog={can(member.role, "doses.log")} />
+        {can(member.role, "ai.use") && (
+          <Link href={`/c/${id}/assistant`} className={buttonClass("secondary")}>
+            <span aria-hidden="true">💬</span> Ask the assistant
+          </Link>
+        )}
       </section>
+
+      {tasks.length > 0 && (
+        <section aria-labelledby="tasks-heading">
+          <Card>
+            <h2 id="tasks-heading" className="text-2xl font-bold">
+              To do today
+            </h2>
+            <ul className="mt-3 flex flex-col gap-1 text-lg" role="list">
+              {tasks.map((t) => (
+                <li key={t.id}>
+                  {t.time ? `${formatLocalTime(zonedToUtc(t.date, t.time, tz), tz)}: ` : ""}
+                  {t.title}
+                </li>
+              ))}
+            </ul>
+          </Card>
+        </section>
+      )}
 
       {refills.length > 0 && (
         <section aria-labelledby="refill-heading">

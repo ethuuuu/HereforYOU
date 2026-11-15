@@ -16,6 +16,9 @@ export default async function CircleLayout({ children, params }: LayoutProps<"/c
     ...(can(member.role, "members.view")
       ? [{ href: `${base}/members`, label: "People", icon: "people" as const, phone: true }]
       : []),
+    ...(can(member.role, "ai.use")
+      ? [{ href: `${base}/assistant`, label: "Assistant", icon: "assistant" as const, phone: true }]
+      : []),
     // On phones Activity is reached from the People page, keeping the bottom bar to 4 roomy targets.
     ...(can(member.role, "activity.view")
       ? [{ href: `${base}/activity`, label: "Activity", icon: "activity" as const, phone: false }]

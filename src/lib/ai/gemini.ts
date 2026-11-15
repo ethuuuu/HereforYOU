@@ -4,7 +4,7 @@
  * model id from Google AI Studio).
  */
 import "server-only";
-import { GoogleGenAI, Modality, ThinkingLevel } from "@google/genai";
+import { GoogleGenAI, Modality, ThinkingLevel, type Content, type Part } from "@google/genai";
 import { z } from "zod";
 import { pcmToWav, sampleRateOf } from "@/lib/audio";
 import { serverEnv } from "@/lib/env";
@@ -129,4 +129,86 @@ export async function generateJSON<T>(schema: z.ZodType<T>, opts: Omit<GenerateO
   );
   if (retry.ok) return retry.data;
   throw new AIError("The AI returned data in an unexpected shape. Please try again.");
+}
+
+/* ---------- Assistant: function calling + transcription ---------- */
+
+export type ChatTurn = { role: "user" | "model"; text: string };
+export type ToolCall = { name: string; args: Record<string, unknown> };
+export type ToolDeclaration = { name: string; description: string; parametersJsonSchema?: unknown };
+
+const textOf = (parts: Part[] = []) =>
+  parts
+    .filter((p) => p.text && !p.thought)
+    .map((p) => p.text)
+    .join("")
+    .trim();
+
+/**
+ * One assistant turn with Gemini function calling. The model may call tools; `onToolCall` runs
+ * each one and returns the result to send back, or `null` to stop (e.g. an action that needs the
+ * person's confirmation first). The model never runs anything itself.
+ */
+export async function chatWithTools(opts: {
+  system: string;
+  history: ChatTurn[];
+  tools: ToolDeclaration[];
+  onToolCall: (call: ToolCall) => Promise<Record<string, unknown> | null>;
+  maxRounds?: number;
+}): Promise<{ text: string; stoppedAt?: ToolCall }> {
+  const contents: Content[] = opts.history.map((t) => ({ role: t.role, parts: [{ text: t.text }] }));
+  for (let round = 0; round < (opts.maxRounds ?? 4); round++) {
+    let content: Content | undefined;
+    try {
+      const res = await gemini().models.generateContent({
+        model: serverEnv().GEMINI_MODEL,
+        contents,
+        config: {
+          systemInstruction: opts.system,
+          maxOutputTokens: 1024,
+          temperature: 0.3,
+          tools: opts.tools.length ? [{ functionDeclarations: opts.tools }] : undefined,
+        },
+      });
+      content = res.candidates?.[0]?.content;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      throw new AIError(`Gemini request failed: ${message}`);
+    }
+    const calls = (content?.parts ?? []).flatMap((p) => (p.functionCall?.name ? [p.functionCall] : []));
+    if (!content || calls.length === 0) return { text: textOf(content?.parts) };
+    contents.push(content); // keeps Gemini's thought signatures, which the next round needs
+    const responses: Part[] = [];
+    for (const fc of calls) {
+      const call = { name: fc.name!, args: fc.args ?? {} };
+      const output = await opts.onToolCall(call);
+      if (output === null) return { text: textOf(content.parts), stoppedAt: call };
+      responses.push({ functionResponse: { id: fc.id, name: call.name, response: output } });
+    }
+    contents.push({ role: "user", parts: responses });
+  }
+  return { text: "" };
+}
+
+/** Speech → text with Gemini (audio sent inline). Returns "" when nothing was said. */
+export async function transcribeAudio(audio: { mimeType: string; base64: string }): Promise<string> {
+  try {
+    const res = await gemini().models.generateContent({
+      model: serverEnv().GEMINI_MODEL,
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { inlineData: { mimeType: audio.mimeType, data: audio.base64 } },
+            { text: "Write down exactly what the person says, in their language. Reply with the words only. If nobody speaks, reply with nothing." },
+          ],
+        },
+      ],
+      config: { maxOutputTokens: 400, temperature: 0 },
+    });
+    return textOf(res.candidates?.[0]?.content?.parts);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw new AIError(`Gemini transcription failed: ${message}`);
+  }
 }
